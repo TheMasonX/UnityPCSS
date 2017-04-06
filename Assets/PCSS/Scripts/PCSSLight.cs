@@ -37,7 +37,8 @@ public class PCSSLight : MonoBehaviour
     [Space(20f)]
     public RenderTexture shadowRenderTexture;
     public RenderTextureFormat format = RenderTextureFormat.RFloat;
-    public FilterMode filterMode = FilterMode.Point;
+    public FilterMode filterMode = FilterMode.Trilinear;
+    public LightEvent lightEvent = LightEvent.AfterShadowMap;
     public string shaderName = "Hidden/PCSS";
     private Shader shader;
 
@@ -71,8 +72,16 @@ public class PCSSLight : MonoBehaviour
 
         copyShadowBuffer = new CommandBuffer();
         copyShadowBuffer.name = "PCSS Shadows";
-        _light.RemoveAllCommandBuffers();
-        _light.AddCommandBuffer(LightEvent.AfterShadowMap, copyShadowBuffer);
+        var buffers = _light.GetCommandBuffers(lightEvent);
+        for (int i = 0; i < buffers.Length; i++)
+        {
+            if(buffers[i].name == "PCSS Shadows")
+            {
+                _light.RemoveCommandBuffer(lightEvent, buffers[i]);
+            }
+        }
+
+        _light.AddCommandBuffer(lightEvent, copyShadowBuffer);
         GraphicsSettings.SetCustomShader(BuiltinShaderType.ScreenSpaceShadows, shader);
         GraphicsSettings.SetShaderMode(BuiltinShaderType.ScreenSpaceShadows, BuiltinShaderMode.UseCustom);
 
@@ -103,11 +112,11 @@ public class PCSSLight : MonoBehaviour
     {
         ToggleLink(false);
 
-        GraphicsSettings.SetCustomShader(BuiltinShaderType.ScreenSpaceShadows, null);
+        GraphicsSettings.SetCustomShader(BuiltinShaderType.ScreenSpaceShadows, Shader.Find("Hidden/Internal-ScreenSpaceShadows"));
         GraphicsSettings.SetShaderMode(BuiltinShaderType.ScreenSpaceShadows, BuiltinShaderMode.Disabled);
-        GraphicsSettings.SetShaderMode(BuiltinShaderType.ScreenSpaceShadows, BuiltinShaderMode.UseBuiltin);
         _light.shadowCustomResolution = 0;
         DestroyImmediate(shadowRenderTexture);
+        GraphicsSettings.SetShaderMode(BuiltinShaderType.ScreenSpaceShadows, BuiltinShaderMode.UseBuiltin);
 
         if (!_light)
             return;
