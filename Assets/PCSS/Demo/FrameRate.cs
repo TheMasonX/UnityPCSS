@@ -5,6 +5,8 @@ using UnityEngine.UI;
 
 public class FrameRate : MonoBehaviour
 {
+    public Text graphicsAPIText;
+    public Text vsyncStatusText;
     public Text frameRateText;
 
     public float updateInterval = 1f;
@@ -42,6 +44,8 @@ public class FrameRate : MonoBehaviour
         }
         avgFPS /= frameBuffer.Length;
 
+        graphicsAPIText.text = string.Format("Graphics API: {0}", SystemInfo.graphicsDeviceType);
+        vsyncStatusText.text = string.Format("VSync: {0}", QualitySettings.vSyncCount > 0 ? "Enabled" : "Disabled");
         frameRateText.text = string.Format("Frame Rate: Avg {0} | Min {1} | Max {2}", avgFPS.ToString(frameRateStringType), minFPS.ToString(frameRateStringType), maxFPS.ToString(frameRateStringType));
         Invoke("UpdateUI", updateInterval);
     }
