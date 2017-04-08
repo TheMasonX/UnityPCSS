@@ -43,9 +43,13 @@ struct v2f
 	float4 uv : TEXCOORD0;
 	// View space ray, for perspective case
 	float3 ray : TEXCOORD1;
-	// Orthographic view space positions (need xy as well for oblique matrices)
+
+#if defined(ORTHOGRAPHIC_SUPPORTED)
+	// ORTHOGRAPHIC_SUPPORTED view space positions (need xy as well for oblique matrices)
 	float3 orthoPosNear : TEXCOORD2;
 	float3 orthoPosFar  : TEXCOORD3;
+#endif
+
 	UNITY_VERTEX_INPUT_INSTANCE_ID
 	UNITY_VERTEX_OUTPUT_STEREO
 };
@@ -70,7 +74,8 @@ v2f vert (appdata v)
 	o.ray = v.ray;
 #endif
 
-	// To compute view space position from Z buffer for orthographic case,
+#if defined(ORTHOGRAPHIC_SUPPORTED)
+	// To compute view space position from Z buffer for ORTHOGRAPHIC_SUPPORTED case,
 	// we need different code than for perspective case. We want to avoid
 	// doing matrix multiply in the pixel shader: less operations, and less
 	// constant registers used. Particularly with constant registers, having
@@ -83,6 +88,7 @@ v2f vert (appdata v)
 	orthoPosFar.z *= -1;
 	o.orthoPosNear = orthoPosNear;
 	o.orthoPosFar = orthoPosFar;
+#endif
 
 	return o;
 }
@@ -218,19 +224,18 @@ inline float3 computeCameraSpacePosFromDepthAndInvProjMat(v2f i)
 inline float3 computeCameraSpacePosFromDepthAndVSInfo(v2f i)
 {
 	float zdepth = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, i.uv.xy);
+	float3 vposPersp = (i.ray * Linear01Depth(zdepth)).xyz;
 
-	// 0..1 linear depth, 0 at camera, 1 at far plane.
-	float depth = lerp(Linear01Depth(zdepth), zdepth, unity_OrthoParams.w);
 #if defined(UNITY_REVERSED_Z)
-	zdepth = 1 - zdepth;
+	zdepth = 1.0 - zdepth;
 #endif
 
-	// view position calculation for perspective & ortho cases
-	float3 vposPersp = i.ray * depth;
+#if defined(ORTHOGRAPHIC_SUPPORTED)
 	float3 vposOrtho = lerp(i.orthoPosNear, i.orthoPosFar, zdepth);
-	// pick the perspective or ortho position as needed
-	float3 camPos = lerp(vposPersp, vposOrtho, unity_OrthoParams.w);
-	return camPos.xyz;
+	return lerp(vposPersp, vposOrtho, unity_OrthoParams.w);
+#else
+	return vposPersp;
+#endif
 }
 
 
@@ -515,9 +520,15 @@ inline float SampleShadowmapDepth(float2 uv)
 	return tex2Dlod(_ShadowMap, float4(uv, 0.0, 0.0)).r;
 }
 
-inline half SampleShadowmap_Soft(float4 coord)
+inline float SampleShadowmap_Soft(float4 coord)
 {
 	return UNITY_SAMPLE_SHADOW(_ShadowMapTexture, coord);
+}
+
+inline float SampleShadowmap(float4 coord)
+{
+	float depth = SampleShadowmapDepth(coord.xy);
+	return step(depth, coord.z);
 }
 
 /*
@@ -651,6 +662,7 @@ float PCSS_Main(float4 coords, float2 receiverPlaneDepthBias, float random)
 #endif
 
 	float filterRadiusUV = penumbra * Softness;
+	//filterRadiusUV *= filterRadiusUV;
 
 	// STEP 3: filtering
 	float shadow = PCF_Filter(uv, depth, filterRadiusUV, receiverPlaneDepthBias, penumbra, rotationTrig);
@@ -843,6 +855,8 @@ Subshader
 		#pragma fragment frag_pcss
 		#pragma multi_compile_shadowcollector
 		#pragma multi_compile POISSON_32 POISSON_64 POISSON_128
+
+		#pragma shader_feature ORTHOGRAPHIC_SUPPORTED
 		#pragma shader_feature USE_STATIC_BIAS
 		#pragma shader_feature USE_BLOCKER_BIAS
 		#pragma shader_feature USE_PCF_BIAS
@@ -876,6 +890,8 @@ Subshader
 		#pragma fragment frag_pcss
 		#pragma multi_compile_shadowcollector
 		#pragma multi_compile POISSON_32 POISSON_64 POISSON_128
+
+		#pragma shader_feature ORTHOGRAPHIC_SUPPORTED
 		#pragma shader_feature USE_STATIC_BIAS
 		#pragma shader_feature USE_BLOCKER_BIAS
 		#pragma shader_feature USE_PCF_BIAS

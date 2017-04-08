@@ -17,7 +17,7 @@ public class PCSSLight : MonoBehaviour
     public bool RotateSamples = true;
 
     [Space(20f)]
-    [Range(1f, 10f)]
+    [Range(0f, 7.5f)]
     public float Softness = 1f;
 
     [Space(20f)]
@@ -33,18 +33,19 @@ public class PCSSLight : MonoBehaviour
     [Range(0f, 1f)]
     public float CascadeBlendDistance = .5f;
 
+    [Space(20f)]
+    public bool supportOrthographicProjection;
 
     [Space(20f)]
     public RenderTexture shadowRenderTexture;
     public RenderTextureFormat format = RenderTextureFormat.RFloat;
-    public FilterMode filterMode = FilterMode.Trilinear;
-    public LightEvent lightEvent = LightEvent.AfterShadowMap;
+    public FilterMode filterMode = FilterMode.Bilinear;
+    private LightEvent lightEvent = LightEvent.AfterShadowMap;
     public string shaderName = "Hidden/PCSS";
     private Shader shader;
 
     private CommandBuffer copyShadowBuffer;
     private Light _light;
-    private Camera _cam { get { return Camera.main; } }
 
     public void OnEnable ()
     {
@@ -64,14 +65,11 @@ public class PCSSLight : MonoBehaviour
         else
             _light.shadowCustomResolution = 0;
 
-        shadowRenderTexture = new RenderTexture(resolution, resolution, 0, format);
-        shadowRenderTexture.filterMode = filterMode;
-        shadowRenderTexture.useMipMap = false;
-
         shader = Shader.Find(shaderName);
 
         copyShadowBuffer = new CommandBuffer();
         copyShadowBuffer.name = "PCSS Shadows";
+        
         var buffers = _light.GetCommandBuffers(lightEvent);
         for (int i = 0; i < buffers.Length; i++)
         {
@@ -85,21 +83,9 @@ public class PCSSLight : MonoBehaviour
         GraphicsSettings.SetCustomShader(BuiltinShaderType.ScreenSpaceShadows, shader);
         GraphicsSettings.SetShaderMode(BuiltinShaderType.ScreenSpaceShadows, BuiltinShaderMode.UseCustom);
 
-        //_cam.depthTextureMode = DepthTextureMode.Depth | DepthTextureMode.MotionVectors;
-        _cam.depthTextureMode |= DepthTextureMode.Depth | DepthTextureMode.DepthNormals | DepthTextureMode.MotionVectors;
-
-        ToggleLink(true);
-    }
-
-    public void ToggleLink (bool target)
-    {
-        if (target)
-        {
-            Camera.onPreRender -= UpdateCommandBuffer;
-            Camera.onPreRender += UpdateCommandBuffer;
-        }
-        else
-            Camera.onPreRender -= UpdateCommandBuffer;
+        CreateShadowRenderTexture();
+        UpdateShaderValues();
+        UpdateCommandBuffer();
     }
 
     public void OnDisable ()
@@ -110,8 +96,6 @@ public class PCSSLight : MonoBehaviour
     [ContextMenu("Reset Shadows To Default")]
     public void ResetShadowMode ()
     {
-        ToggleLink(false);
-
         GraphicsSettings.SetCustomShader(BuiltinShaderType.ScreenSpaceShadows, Shader.Find("Hidden/Internal-ScreenSpaceShadows"));
         GraphicsSettings.SetShaderMode(BuiltinShaderType.ScreenSpaceShadows, BuiltinShaderMode.Disabled);
         _light.shadowCustomResolution = 0;
@@ -124,18 +108,17 @@ public class PCSSLight : MonoBehaviour
         _light.RemoveCommandBuffer(LightEvent.AfterShadowMap, copyShadowBuffer);
     }
 
-    void UpdateCommandBuffer (Camera cam)
+    public void UpdateShaderValues ()
     {
-        if (!_light)
-            return;
-
         Shader.SetGlobalInt("Blocker_Samples", Blocker_SampleCount);
         Shader.SetGlobalInt("PCF_Samples", PCF_SampleCount);
 
-        //Shader.SetGlobalFloat("Blocker_Rotation", Blocker_Rotation);
-        //Shader.SetGlobalFloat("PCF_Rotation", PCF_Rotation);
+        if (shadowRenderTexture.format != format)
+            CreateShadowRenderTexture();
+        else
+            shadowRenderTexture.filterMode = filterMode;
 
-        Shader.SetGlobalFloat("Softness", (Softness * Softness / 1024f));
+        Shader.SetGlobalFloat("Softness", Softness * Softness / 32f / Mathf.Sqrt(QualitySettings.shadowDistance));
 
         Shader.SetGlobalFloat("RECEIVER_PLANE_MIN_FRACTIONAL_ERROR", MaxStaticGradientBias);
         Shader.SetGlobalFloat("Blocker_GradientBias", Blocker_GradientBias);
@@ -147,25 +130,34 @@ public class PCSSLight : MonoBehaviour
         SetFlag("USE_STATIC_BIAS", MaxStaticGradientBias > 0);
         SetFlag("USE_BLOCKER_BIAS", Blocker_GradientBias > 0);
         SetFlag("USE_PCF_BIAS", PCF_GradientBias > 0);
+
         SetFlag("ROTATE_SAMPLES", RotateSamples);
+        SetFlag("ORTHOGRAPHIC_SUPPORTED", supportOrthographicProjection);
 
         int maxSamples = Mathf.Max(Blocker_SampleCount, PCF_SampleCount);
 
         SetFlag("POISSON_32", maxSamples < 33);
         SetFlag("POISSON_64", maxSamples > 32 && maxSamples < 65);
         SetFlag("POISSON_128", maxSamples > 64);
+    }
+
+    public void UpdateCommandBuffer ()
+    {
+        if (!_light)
+            return;
 
         copyShadowBuffer.Clear();
-
         copyShadowBuffer.SetShadowSamplingMode(BuiltinRenderTextureType.CurrentActive, ShadowSamplingMode.RawDepth);
-        //copyShadowBuffer.Blit(BuiltinRenderTextureType.CurrentActive, shadowRenderTexture2);
-        //copyShadowBuffer.Blit(shadowRenderTexture2, shadowRenderTexture, blitMaterial);
-
         copyShadowBuffer.Blit(BuiltinRenderTextureType.CurrentActive, shadowRenderTexture);
-        //copyShadowBuffer.Blit(BuiltinRenderTextureType.CurrentActive, shadowRenderTexture, blitMaterial);
-
         copyShadowBuffer.SetGlobalTexture("_ShadowMap", shadowRenderTexture);
     }
+
+    public void CreateShadowRenderTexture ()
+    {
+        shadowRenderTexture = new RenderTexture(resolution, resolution, 0, format);
+        shadowRenderTexture.filterMode = filterMode;
+        shadowRenderTexture.useMipMap = false;
+    } 
 
     public void SetFlag (string shaderKeyword, bool value)
     {

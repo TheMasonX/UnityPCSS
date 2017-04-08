@@ -36,6 +36,7 @@ public class PCSSDemo : MonoBehaviour
         int samples = Mathf.RoundToInt(samplesFloat);
         pcssScript.Blocker_SampleCount = samples;
         blockerText.text = string.Format("Blocker Samples: {0}", samples);
+        pcssScript.UpdateShaderValues();
     }
 
     public void SetPCFSamples (float samplesFloat)
@@ -43,11 +44,13 @@ public class PCSSDemo : MonoBehaviour
         int samples = Mathf.RoundToInt(samplesFloat);
         pcssScript.PCF_SampleCount = samples;
         pcfText.text = string.Format("PCF Samples: {0}", samples);
+        pcssScript.UpdateShaderValues();
     }
 
     public void SetSoftness (float softness)
     {
         pcssScript.Softness = softness;
         softnessText.text = string.Format("Softness: {0}", softness.ToString("N2"));
+        pcssScript.UpdateShaderValues();
     }
 }
