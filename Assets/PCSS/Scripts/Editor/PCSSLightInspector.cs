@@ -16,5 +16,15 @@ public class PCSSLightInspector : Editor
         {
             script.UpdateShaderValues();
         }
+
+        //if (script.Blocker_GradientBias > 0 && QualitySettings.shadowCascades > 1)
+        //{
+        //    EditorGUILayout.HelpBox("'Blocker Gradient Bias' > 0 seems to cause issues when using shadow cascades. Use at your own risk!", MessageType.Warning);
+        //}
+
+        if (script.Blocker_GradientBias < Mathf.Epsilon && QualitySettings.shadowCascades == 1)
+        {
+            EditorGUILayout.HelpBox("A 'Blocker Gradient Bias' of 0 seems to cause issues when not using shadow cascades. Any non-zero value should fix this.", MessageType.Error);
+        }
     }
 }

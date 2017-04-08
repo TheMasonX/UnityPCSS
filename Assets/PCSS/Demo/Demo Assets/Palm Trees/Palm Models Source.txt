@@ -1,0 +1,5 @@
+Palm Tree models are originally from a royalty free model pack by killst4r, available on Turbosquid: https://www.turbosquid.com/FullPreview/Index.cfm/ID/490485
+After including them, they were modified by Arnooby, who said that I can use his modified version. They are available free at: https://github.com/Arnooby/Models_unity_free/
+
+They are included for demonstration purposes only; I picked them only because they were free, fairly nice looking, and covered by a relatively permissive license. That being said, I have no affiliation with the artist, and they are not covered by the same MIT license.
+In order to somewhat cover my butt in the very unlikely event that the author decides my inclusion of these assets constitutes "distribution," if you want to use these assets yourself, I ask that you at least visit the Turbosquid page and leave a nice rating/review.

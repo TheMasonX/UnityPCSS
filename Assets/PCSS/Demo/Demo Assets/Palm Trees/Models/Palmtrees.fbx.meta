@@ -1,0 +1,276 @@
+fileFormatVersion: 2
+guid: b38bbac254e840247a5ab972b0d0a52a
+timeCreated: 1491585144
+licenseType: Free
+ModelImporter:
+  serializedVersion: 19
+  fileIDToRecycleName:
+    100000: Palm1
+    100002: Palm1 1
+    100004: Palm1 10
+    100006: Palm1 11
+    100008: Palm1 12
+    100010: Palm1 13
+    100012: Palm1 14
+    100014: Palm1 15
+    100016: Palm1 16
+    100018: Palm1 17
+    100020: Palm1 2
+    100022: Palm1 3
+    100024: Palm1 4
+    100026: Palm1 5
+    100028: Palm1 6
+    100030: Palm1 7
+    100032: Palm1 8
+    100034: Palm1 9
+    100036: Palm_tree1
+    100038: Palm_tree1_LOD0
+    100040: Palm_tree1_LOD1
+    100042: Palm_tree1_LOD2
+    100044: Palm_tree2
+    100046: Palm_tree2_LOD0
+    100048: Palm_tree2_LOD1
+    100050: Palm_tree2_LOD2
+    100052: Palm_tree3
+    100054: Palm_tree3_LOD0
+    100056: Palm_tree3_LOD1
+    100058: Palm_tree3_LOD2
+    100060: Palm_tree4
+    100062: Palm_tree4_LOD0
+    100064: Palm_tree4_LOD1
+    100066: Palm_tree4_LOD2
+    100068: Palm_tree5
+    100070: Palm_tree5_LOD0
+    100072: Palm_tree5_LOD1
+    100074: Palm_tree5_LOD2
+    100076: Palm_tree6
+    100078: Palm_tree6_LOD0
+    100080: Palm_tree6_LOD1
+    100082: Palm_tree6_LOD2
+    100084: //RootNode
+    400000: Palm1
+    400002: Palm1 1
+    400004: Palm1 10
+    400006: Palm1 11
+    400008: Palm1 12
+    400010: Palm1 13
+    400012: Palm1 14
+    400014: Palm1 15
+    400016: Palm1 16
+    400018: Palm1 17
+    400020: Palm1 2
+    400022: Palm1 3
+    400024: Palm1 4
+    400026: Palm1 5
+    400028: Palm1 6
+    400030: Palm1 7
+    400032: Palm1 8
+    400034: Palm1 9
+    400036: Palm_tree1
+    400038: Palm_tree1_LOD0
+    400040: Palm_tree1_LOD1
+    400042: Palm_tree1_LOD2
+    400044: Palm_tree2
+    400046: Palm_tree2_LOD0
+    400048: Palm_tree2_LOD1
+    400050: Palm_tree2_LOD2
+    400052: Palm_tree3
+    400054: Palm_tree3_LOD0
+    400056: Palm_tree3_LOD1
+    400058: Palm_tree3_LOD2
+    400060: Palm_tree4
+    400062: Palm_tree4_LOD0
+    400064: Palm_tree4_LOD1
+    400066: Palm_tree4_LOD2
+    400068: Palm_tree5
+    400070: Palm_tree5_LOD0
+    400072: Palm_tree5_LOD1
+    400074: Palm_tree5_LOD2
+    400076: Palm_tree6
+    400078: Palm_tree6_LOD0
+    400080: Palm_tree6_LOD1
+    400082: Palm_tree6_LOD2
+    400084: //RootNode
+    2300000: Palm1
+    2300002: Palm1 1
+    2300004: Palm1 10
+    2300006: Palm1 11
+    2300008: Palm1 12
+    2300010: Palm1 13
+    2300012: Palm1 14
+    2300014: Palm1 15
+    2300016: Palm1 16
+    2300018: Palm1 17
+    2300020: Palm1 2
+    2300022: Palm1 3
+    2300024: Palm1 4
+    2300026: Palm1 5
+    2300028: Palm1 6
+    2300030: Palm1 7
+    2300032: Palm1 8
+    2300034: Palm1 9
+    2300036: Palm_tree1_LOD0
+    2300038: Palm_tree1_LOD1
+    2300040: Palm_tree1_LOD2
+    2300042: Palm_tree2_LOD0
+    2300044: Palm_tree2_LOD1
+    2300046: Palm_tree2_LOD2
+    2300048: Palm_tree3_LOD0
+    2300050: Palm_tree3_LOD1
+    2300052: Palm_tree3_LOD2
+    2300054: Palm_tree4_LOD0
+    2300056: Palm_tree4_LOD1
+    2300058: Palm_tree4_LOD2
+    2300060: Palm_tree5_LOD0
+    2300062: Palm_tree5_LOD1
+    2300064: Palm_tree5_LOD2
+    2300066: Palm_tree6_LOD0
+    2300068: Palm_tree6_LOD1
+    2300070: Palm_tree6_LOD2
+    3300000: Palm1
+    3300002: Palm1 1
+    3300004: Palm1 10
+    3300006: Palm1 11
+    3300008: Palm1 12
+    3300010: Palm1 13
+    3300012: Palm1 14
+    3300014: Palm1 15
+    3300016: Palm1 16
+    3300018: Palm1 17
+    3300020: Palm1 2
+    3300022: Palm1 3
+    3300024: Palm1 4
+    3300026: Palm1 5
+    3300028: Palm1 6
+    3300030: Palm1 7
+    3300032: Palm1 8
+    3300034: Palm1 9
+    3300036: Palm_tree1_LOD0
+    3300038: Palm_tree1_LOD1
+    3300040: Palm_tree1_LOD2
+    3300042: Palm_tree2_LOD0
+    3300044: Palm_tree2_LOD1
+    3300046: Palm_tree2_LOD2
+    3300048: Palm_tree3_LOD0
+    3300050: Palm_tree3_LOD1
+    3300052: Palm_tree3_LOD2
+    3300054: Palm_tree4_LOD0
+    3300056: Palm_tree4_LOD1
+    3300058: Palm_tree4_LOD2
+    3300060: Palm_tree5_LOD0
+    3300062: Palm_tree5_LOD1
+    3300064: Palm_tree5_LOD2
+    3300066: Palm_tree6_LOD0
+    3300068: Palm_tree6_LOD1
+    3300070: Palm_tree6_LOD2
+    4300000: Palm_tree1_LOD0
+    4300002: Palm1
+    4300004: Palm_tree1_LOD1
+    4300006: Palm1
+    4300008: Palm_tree1_LOD2
+    4300010: Palm1
+    4300012: Palm_tree2_LOD0
+    4300014: Palm1
+    4300016: Palm_tree2_LOD1
+    4300018: Palm1
+    4300020: Palm_tree2_LOD2
+    4300022: Palm1
+    4300024: Palm_tree3_LOD0
+    4300026: Palm1
+    4300028: Palm_tree3_LOD1
+    4300030: Palm1
+    4300032: Palm_tree3_LOD2
+    4300034: Palm1
+    4300036: Palm_tree4_LOD0
+    4300038: Palm1
+    4300040: Palm_tree4_LOD1
+    4300042: Palm1
+    4300044: Palm_tree4_LOD2
+    4300046: Palm1
+    4300048: Palm_tree5_LOD0
+    4300050: Palm1
+    4300052: Palm_tree5_LOD1
+    4300054: Palm1
+    4300056: Palm_tree5_LOD2
+    4300058: Palm1
+    4300060: Palm_tree6_LOD0
+    4300062: Palm1
+    4300064: Palm_tree6_LOD1
+    4300066: Palm1
+    4300068: Palm_tree6_LOD2
+    4300070: Palm1
+    9500000: //RootNode
+    20500000: //RootNode
+  materials:
+    importMaterials: 0
+    materialName: 0
+    materialSearch: 1
+  animations:
+    legacyGenerateAnimations: 4
+    bakeSimulation: 0
+    resampleCurves: 1
+    optimizeGameObjects: 0
+    motionNodeName: 
+    rigImportErrors: 
+    rigImportWarnings: 
+    animationImportErrors: 
+    animationImportWarnings: 
+    animationRetargetingWarnings: 
+    animationDoRetargetingWarnings: 0
+    animationCompression: 1
+    animationRotationError: 0.5
+    animationPositionError: 0.5
+    animationScaleError: 0.5
+    animationWrapMode: 0
+    extraExposedTransformPaths: []
+    clipAnimations: []
+    isReadable: 1
+  meshes:
+    lODScreenPercentages:
+    - 0.25
+    - 0.125
+    - 0.01
+    globalScale: 10
+    meshCompression: 0
+    addColliders: 0
+    importBlendShapes: 1
+    swapUVChannels: 0
+    generateSecondaryUV: 0
+    useFileUnits: 1
+    optimizeMeshForGPU: 1
+    keepQuads: 0
+    weldVertices: 1
+    secondaryUVAngleDistortion: 8
+    secondaryUVAreaDistortion: 15.000001
+    secondaryUVHardAngle: 88
+    secondaryUVPackMargin: 4
+    useFileScale: 1
+  tangentSpace:
+    normalSmoothAngle: 60
+    normalImportMode: 0
+    tangentImportMode: 3
+  importAnimation: 0
+  copyAvatar: 0
+  humanDescription:
+    serializedVersion: 2
+    human: []
+    skeleton: []
+    armTwist: 0.5
+    foreArmTwist: 0.5
+    upperLegTwist: 0.5
+    legTwist: 0.5
+    armStretch: 0.05
+    legStretch: 0.05
+    feetSpacing: 0
+    rootMotionBoneName: 
+    rootMotionBoneRotation: {x: 0, y: 0, z: 0, w: 1}
+    hasTranslationDoF: 0
+    hasExtraRoot: 1
+    skeletonHasParents: 1
+  lastHumanDescriptionAvatarSource: {instanceID: 0}
+  animationType: 0
+  humanoidOversampling: 1
+  additionalBone: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
