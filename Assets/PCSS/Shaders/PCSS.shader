@@ -260,6 +260,9 @@ uniform float PenumbraWithMaxSamples = .15;
 uniform sampler2D_float _ShadowMap;
 float4 _ShadowMap_TexelSize;
 
+uniform sampler2D _NoiseTexture;
+uniform float4 NoiseCoords;
+
 #if defined(POISSON_32)
 static const float2 PoissonOffsets[32] = {
 	float2(0.06407013, 0.05409927),
@@ -296,7 +299,7 @@ static const float2 PoissonOffsets[32] = {
 	float2(0.4402924, 0.3640312),
 };
 
-#elif defined(POISSON_64)
+#else
 static const float2 PoissonOffsets[64] = {
 	float2(0.0617981, 0.07294159),
 	float2(0.6470215, 0.7474022),
@@ -362,138 +365,6 @@ static const float2 PoissonOffsets[64] = {
 	float2(0.1253822, 0.9892166),
 	float2(-0.1154335, 0.8248222),
 	float2(-0.4230408, -0.7129914),
-};
-
-#else
-static const float2 PoissonOffsets[128] = {
-	float2(0.0523983, 0.05125313),
-	float2(0.7506024, 0.6416729),
-	float2(-0.6555538, -0.6972061),
-	float2(-0.6401211, 0.7185646),
-	float2(0.6426128, -0.6745823),
-	float2(-0.9087288, 0.02085571),
-	float2(0.9460858, -0.0999916),
-	float2(-0.02000313, -0.9718598),
-	float2(-0.01854477, 0.9130806),
-	float2(-0.2278408, -0.2698238),
-	float2(-0.3925537, 0.1408867),
-	float2(0.16684, 0.4366482),
-	float2(0.1830242, -0.5104008),
-	float2(0.4326977, -0.02849655),
-	float2(-0.7460884, -0.3221378),
-	float2(-0.2325478, 0.4170834),
-	float2(0.6386929, 0.2067905),
-	float2(-0.8808327, 0.4699932),
-	float2(0.3091152, 0.83834),
-	float2(0.8920177, -0.4490143),
-	float2(-0.3668827, 0.8998421),
-	float2(-0.1473625, -0.626561),
-	float2(0.9161724, 0.3637665),
-	float2(0.5393215, -0.2697891),
-	float2(0.4244885, -0.8863586),
-	float2(-0.5891773, 0.2790733),
-	float2(0.452911, 0.4910271),
-	float2(-0.5426205, -0.04421616),
-	float2(-0.4024555, -0.4846088),
-	float2(-0.2809536, -0.8831943),
-	float2(-0.05907478, 0.5191097),
-	float2(0.07011528, -0.127459),
-	float2(-0.1214069, 0.01730461),
-	float2(-0.3819572, 0.5124161),
-	float2(0.1860653, 0.1308563),
-	float2(0.3627224, -0.5412804),
-	float2(0.548225, 0.7110955),
-	float2(0.2255856, -0.9429855),
-	float2(-0.2531807, 0.6851951),
-	float2(0.2228588, -0.2722488),
-	float2(-0.8468769, -0.4976872),
-	float2(-0.3884094, -0.6610416),
-	float2(-0.5018234, -0.2594208),
-	float2(-0.6551609, 0.08130531),
-	float2(-0.1034695, 0.1961033),
-	float2(0.3326122, 0.2748238),
-	float2(-0.555426, 0.4974079),
-	float2(0.7552822, -0.1990608),
-	float2(0.10909, 0.5793735),
-	float2(0.0316967, -0.7597309),
-	float2(-0.1936665, 0.9784874),
-	float2(-0.7587944, -0.1111523),
-	float2(0.1912594, 0.9769966),
-	float2(0.6122753, 0.3726795),
-	float2(0.4560406, -0.6954151),
-	float2(0.7983395, 0.2003979),
-	float2(-0.5723022, -0.39972),
-	float2(-0.9217919, -0.1554279),
-	float2(-0.006718445, -0.4819473),
-	float2(0.2801128, -0.7629395),
-	float2(0.2881924, 0.5476402),
-	float2(-0.4838009, -0.7950897),
-	float2(-0.2293892, -0.08886871),
-	float2(0.6530254, -0.3640164),
-	float2(0.07273369, 0.7508904),
-	float2(-0.7361313, 0.2937286),
-	float2(-0.06856652, -0.297224),
-	float2(0.04810143, 0.1992008),
-	float2(-0.1122677, 0.7637932),
-	float2(-0.4766476, 0.6577533),
-	float2(0.8486843, 0.0501667),
-	float2(0.7273098, -0.5381363),
-	float2(-0.1930405, -0.4002087),
-	float2(0.2785259, -0.1249229),
-	float2(0.5794536, 0.05213356),
-	float2(-0.6770931, -0.5393627),
-	float2(0.4951916, -0.4129105),
-	float2(-0.8966049, -0.3273083),
-	float2(0.3283626, 0.11478),
-	float2(0.6016506, -0.1229168),
-	float2(0.0177372, 0.3636017),
-	float2(-0.628931, -0.2070946),
-	float2(-0.07240639, -0.1103706),
-	float2(-0.1013767, -0.8425629),
-	float2(0.396838, 0.6275261),
-	float2(0.1724804, 0.2767746),
-	float2(0.5421795, -0.5574638),
-	float2(-0.536491, -0.5854797),
-	float2(0.481039, 0.2207706),
-	float2(0.2139996, 0.7177773),
-	float2(0.9396237, 0.2110527),
-	float2(-0.2259022, -0.7427796),
-	float2(0.3086514, -0.3949814),
-	float2(-0.3608528, -0.3093037),
-	float2(-0.2405533, 0.1575764),
-	float2(0.9434872, -0.2427982),
-	float2(-0.2549389, -0.5287269),
-	float2(-0.3061573, 0.2923721),
-	float2(0.8143719, 0.5142422),
-	float2(-0.8917782, 0.3278767),
-	float2(-0.394632, -0.1553284),
-	float2(-0.4455887, 0.3052128),
-	float2(0.3968655, -0.2324287),
-	float2(0.7531918, -0.05407257),
-	float2(-0.6831161, 0.5858101),
-	float2(-0.7373943, 0.4311337),
-	float2(0.774728, 0.3351696),
-	float2(0.1803562, -0.6654488),
-	float2(-0.02754479, 0.6529366),
-	float2(0.7969112, -0.3495606),
-	float2(-0.3478256, 0.01080475),
-	float2(0.4779903, 0.8276359),
-	float2(-0.4454895, 0.7887825),
-	float2(-0.9556297, 0.1463695),
-	float2(-0.1231297, 0.3382496),
-	float2(0.545863, -0.8325058),
-	float2(0.01641426, -0.6266529),
-	float2(0.2964962, 0.4148033),
-	float2(0.2277248, -0.004109192),
-	float2(0.1088558, -0.3350014),
-	float2(0.6069424, 0.5025207),
-	float2(-0.2283024, 0.8528603),
-	float2(-0.8099159, 0.1042999),
-	float2(0.4434017, 0.3624336),
-	float2(-0.5192261, 0.1622643),
-	float2(-0.1941402, 0.5715412),
-	float2(0.1279179, -0.8604515),
-	float2(0.1050289, 0.870977),
 };
 #endif
 
@@ -637,7 +508,8 @@ float PCSS_Main(float4 coords, float2 receiverPlaneDepthBias, float random)
 	float2 uv = coords.xy;
 	float depth = coords.z;
 
-	float rotationAngle = random * 6.283185307179586476925286766559;
+	//float rotationAngle = random * 6.283185307179586476925286766559;
+	float rotationAngle = random * 3.1415926;
 	float2 rotationTrig = float2(cos(rotationAngle), sin(rotationAngle));
 
 #if defined(UNITY_REVERSED_Z)
@@ -708,7 +580,14 @@ fixed4 frag_pcss (v2f i) : SV_Target
 	float4 wpos = mul(unity_CameraToWorld, float4(vpos,1));
 	fixed4 cascadeWeights = GET_CASCADE_WEIGHTS(wpos, vpos.z);
 	float4 coord = GET_SHADOW_COORDINATES(wpos, cascadeWeights);
+
+#if defined(USE_NOISE_TEX)
+	float random = tex2D(_NoiseTexture, i.uv.xy * NoiseCoords.xy * _ScreenParams.xy).a;
+	random = mad(random, 2.0, -1.0);
+	random = sign(random) * (1.0 - sqrt(1.0 - abs(random)));
+#else
 	float random = ValueNoise(wpos.xyz);
+#endif
 
 	float2 receiverPlaneDepthBiasCascade0 = 0.0;
 	float2 receiverPlaneDepthBias = 0.0;
@@ -854,7 +733,7 @@ Subshader
 		#pragma vertex vert
 		#pragma fragment frag_pcss
 		#pragma multi_compile_shadowcollector
-		#pragma multi_compile POISSON_32 POISSON_64 POISSON_128
+		#pragma multi_compile POISSON_32 POISSON_64
 
 		#pragma shader_feature ORTHOGRAPHIC_SUPPORTED
 		#pragma shader_feature USE_STATIC_BIAS
@@ -862,6 +741,7 @@ Subshader
 		#pragma shader_feature USE_PCF_BIAS
 		#pragma shader_feature USE_CASCADE_BLENDING
 		#pragma shader_feature ROTATE_SAMPLES
+		#pragma shader_feature USE_NOISE_TEX
 		#pragma target 4.0
 		//#pragma target 3.0
 
@@ -889,7 +769,7 @@ Subshader
 		#pragma vertex vert
 		#pragma fragment frag_pcss
 		#pragma multi_compile_shadowcollector
-		#pragma multi_compile POISSON_32 POISSON_64 POISSON_128
+		#pragma multi_compile POISSON_32 POISSON_64
 
 		#pragma shader_feature ORTHOGRAPHIC_SUPPORTED
 		#pragma shader_feature USE_STATIC_BIAS
@@ -897,6 +777,7 @@ Subshader
 		#pragma shader_feature USE_PCF_BIAS
 		#pragma shader_feature USE_CASCADE_BLENDING
 		#pragma shader_feature ROTATE_SAMPLES
+		#pragma shader_feature USE_NOISE_TEX
 		#pragma target 4.0
 		//#pragma target 3.0
 

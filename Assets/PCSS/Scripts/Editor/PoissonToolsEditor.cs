@@ -101,7 +101,7 @@ public class PoissonToolsEditor : Editor
             var v3 = new Vector3(v2.x * 10f, 0, v2.y * 10f) + script.transform.position;
 
             Handles.color = (i < script.count) ? Color.red : Color.white;
-            v3 = Handles.FreeMoveHandle(v3, Quaternion.identity, .2f, Vector3.zero, Handles.DotCap) - script.transform.position;
+            v3 = Handles.FreeMoveHandle(v3, Quaternion.identity, .2f, Vector3.zero, Handles.DotHandleCap) - script.transform.position;
             v2.x = Mathf.Clamp(v3.x / 10f, -.999f, .999f);
             v2.y = Mathf.Clamp(v3.z / 10f, -.999f, .999f);
             script.data[i] = v2;

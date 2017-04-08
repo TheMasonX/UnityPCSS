@@ -10,11 +10,15 @@ public class PCSSLight : MonoBehaviour
     public bool customShadowResolution = false;
 
     [Space(20f)]
-    [Range(1, 128)]
+    [Range(1, 64)]
     public int Blocker_SampleCount = 16;
-    [Range(1, 128)]
+    [Range(1, 64)]
     public int PCF_SampleCount = 16;
+
+    [Space(20f)]
     public bool RotateSamples = true;
+    public bool UseNoiseTexture = true;
+    public Texture2D noiseTexture;
 
     [Space(20f)]
     [Range(0f, 7.5f)]
@@ -41,15 +45,23 @@ public class PCSSLight : MonoBehaviour
     public RenderTextureFormat format = RenderTextureFormat.RFloat;
     public FilterMode filterMode = FilterMode.Bilinear;
     private LightEvent lightEvent = LightEvent.AfterShadowMap;
+
     public string shaderName = "Hidden/PCSS";
     private Shader shader;
+    private int shadowmapPropID;
 
     private CommandBuffer copyShadowBuffer;
     private Light _light;
 
+
     public void OnEnable ()
     {
         Setup();
+    }
+
+    public void OnDisable ()
+    {
+        ResetShadowMode();
     }
 
     [ContextMenu("Reinitialize")]
@@ -66,6 +78,7 @@ public class PCSSLight : MonoBehaviour
             _light.shadowCustomResolution = 0;
 
         shader = Shader.Find(shaderName);
+        shadowmapPropID = Shader.PropertyToID("_ShadowMap");
 
         copyShadowBuffer = new CommandBuffer();
         copyShadowBuffer.name = "PCSS Shadows";
@@ -86,11 +99,6 @@ public class PCSSLight : MonoBehaviour
         CreateShadowRenderTexture();
         UpdateShaderValues();
         UpdateCommandBuffer();
-    }
-
-    public void OnDisable ()
-    {
-        ResetShadowMode();
     }
 
     [ContextMenu("Reset Shadows To Default")]
@@ -132,13 +140,19 @@ public class PCSSLight : MonoBehaviour
         SetFlag("USE_PCF_BIAS", PCF_GradientBias > 0);
 
         SetFlag("ROTATE_SAMPLES", RotateSamples);
+        SetFlag("USE_NOISE_TEX", UseNoiseTexture);
+
+        if (noiseTexture)
+        {
+            Shader.SetGlobalVector("NoiseCoords", new Vector4(1f / noiseTexture.width, 1f / noiseTexture.height, 0f, 0f));
+            Shader.SetGlobalTexture("_NoiseTexture", noiseTexture);
+        }
+
         SetFlag("ORTHOGRAPHIC_SUPPORTED", supportOrthographicProjection);
 
         int maxSamples = Mathf.Max(Blocker_SampleCount, PCF_SampleCount);
 
         SetFlag("POISSON_32", maxSamples < 33);
-        SetFlag("POISSON_64", maxSamples > 32 && maxSamples < 65);
-        SetFlag("POISSON_128", maxSamples > 64);
     }
 
     public void UpdateCommandBuffer ()
@@ -149,7 +163,7 @@ public class PCSSLight : MonoBehaviour
         copyShadowBuffer.Clear();
         copyShadowBuffer.SetShadowSamplingMode(BuiltinRenderTextureType.CurrentActive, ShadowSamplingMode.RawDepth);
         copyShadowBuffer.Blit(BuiltinRenderTextureType.CurrentActive, shadowRenderTexture);
-        copyShadowBuffer.SetGlobalTexture("_ShadowMap", shadowRenderTexture);
+        copyShadowBuffer.SetGlobalTexture(shadowmapPropID, shadowRenderTexture);
     }
 
     public void CreateShadowRenderTexture ()
