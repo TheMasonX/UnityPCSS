@@ -23,6 +23,8 @@ public class PCSSLight : MonoBehaviour
     [Space(20f)]
     [Range(0f, 7.5f)]
     public float Softness = 1f;
+    [Range(0f, .4f)]
+    public float NearPlane = .05f;
 
     [Space(20f)]
     [Range(0f, 0.15f)]
@@ -127,6 +129,7 @@ public class PCSSLight : MonoBehaviour
             shadowRenderTexture.filterMode = filterMode;
 
         Shader.SetGlobalFloat("Softness", Softness * Softness / 32f / Mathf.Sqrt(QualitySettings.shadowDistance));
+        Shader.SetGlobalFloat("NearPlane", NearPlane);
 
         Shader.SetGlobalFloat("RECEIVER_PLANE_MIN_FRACTIONAL_ERROR", MaxStaticGradientBias);
         Shader.SetGlobalFloat("Blocker_GradientBias", Blocker_GradientBias);

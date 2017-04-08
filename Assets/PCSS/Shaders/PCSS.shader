@@ -251,6 +251,8 @@ uniform float Blocker_Rotation = .5;
 uniform float PCF_Rotation = .5;
 
 uniform float Softness = 1.0;
+uniform float NearPlane = .01;
+
 uniform float Blocker_GradientBias = 0.0;
 uniform float PCF_GradientBias = 1.0;
 uniform float CascadeBlendDistance = .5;
@@ -399,7 +401,7 @@ inline float SampleShadowmap_Soft(float4 coord)
 inline float SampleShadowmap(float4 coord)
 {
 	float depth = SampleShadowmapDepth(coord.xy);
-	return step(depth, coord.z);
+	return step(coord.z, depth);
 }
 
 /*
@@ -425,6 +427,10 @@ float2 FindBlocker(float2 uv, float depth, float searchUV, float2 receiverPlaneD
 		float shadowMapDepth = SampleShadowmapDepth(uv + offset);
 
 		float biasedDepth = depth;
+
+#if defined(UNITY_REVERSED_Z)
+		receiverPlaneDepthBias *= -1.0;
+#endif
 
 #if defined(USE_BLOCKER_BIAS)
 		biasedDepth += dot(offset, receiverPlaneDepthBias) * Blocker_GradientBias;
@@ -459,15 +465,11 @@ float2 FindBlocker(float2 uv, float depth, float searchUV, float2 receiverPlaneD
 float PCF_Filter(float2 uv, float depth, float filterRadiusUV, float2 receiverPlaneDepthBias, float penumbra, float2 rotationTrig)
 {
 	float sum = 0.0f;
-#if defined(UNITY_REVERSED_Z)
-	receiverPlaneDepthBias *= -1.0;
-#endif
 
 	//float penumbraPercent = saturate(penumbra / PenumbraWithMaxSamples);
 	//int samples = ceil(penumbraPercent * PCF_Samples);
 	////int samples = ceil((1.0 - (penumbraPercent * penumbraPercent)) * PCF_Samples);
 	//samples = PCF_Samples;
-
 
 	//for (int i = 0; i < samples; i++)
 	for (int i = 0; i < PCF_Samples; i++)
@@ -484,13 +486,18 @@ float PCF_Filter(float2 uv, float depth, float filterRadiusUV, float2 receiverPl
 		biasedDepth += dot(offset, receiverPlaneDepthBias) * PCF_GradientBias;
 #endif
 
-		float value = SampleShadowmap_Soft(float4(uv.xy + offset, biasedDepth, 0));
+		float value = SampleShadowmap(float4(uv.xy + offset, biasedDepth, 0));
+		//float value = SampleShadowmap_Soft(float4(uv.xy + offset, biasedDepth, 0));
 
 		sum += value;
 	}
 
 	//sum /= samples;
 	sum /= PCF_Samples;
+
+#if defined(UNITY_REVERSED_Z)
+	sum = 1.0 - sum;
+#endif
 
 	return sum;
 }
@@ -508,17 +515,22 @@ float PCSS_Main(float4 coords, float2 receiverPlaneDepthBias, float random)
 	float2 uv = coords.xy;
 	float depth = coords.z;
 
+	float zAwareDepth = depth;
+
+#if defined(UNITY_REVERSED_Z)
+	zAwareDepth = 1.0 - zAwareDepth;
+#endif
+
 	//float rotationAngle = random * 6.283185307179586476925286766559;
 	float rotationAngle = random * 3.1415926;
 	float2 rotationTrig = float2(cos(rotationAngle), sin(rotationAngle));
 
-#if defined(UNITY_REVERSED_Z)
-	receiverPlaneDepthBias *= -1.0;
-#endif
-
 	// STEP 1: blocker search
 	//float searchSize = Softness * (depth - _LightShadowData.w) / depth;
-	float2 blockerInfo = FindBlocker(uv, depth, Softness, receiverPlaneDepthBias, rotationTrig);
+	float searchSize = Softness * saturate(zAwareDepth - NearPlane);
+	//searchSize /= zAwareDepth;
+
+	float2 blockerInfo = FindBlocker(uv, depth, searchSize, receiverPlaneDepthBias, rotationTrig);
 
 	if (blockerInfo.y < 1)
 	{
@@ -527,14 +539,11 @@ float PCSS_Main(float4 coords, float2 receiverPlaneDepthBias, float random)
 	}
 
 	// STEP 2: penumbra size
-#if defined(UNITY_REVERSED_Z)
-	float penumbra = (1.0 - depth) - blockerInfo.x;
-#else
-	float penumbra = depth - blockerInfo.x;
-#endif
+	float penumbra = zAwareDepth - blockerInfo.x;
+	//penumbra /= blockerInfo.x;
+	//penumbra /= depth;
 
 	float filterRadiusUV = penumbra * Softness;
-	//filterRadiusUV *= filterRadiusUV;
 
 	// STEP 3: filtering
 	float shadow = PCF_Filter(uv, depth, filterRadiusUV, receiverPlaneDepthBias, penumbra, rotationTrig);
@@ -580,10 +589,15 @@ fixed4 frag_pcss (v2f i) : SV_Target
 	float4 wpos = mul(unity_CameraToWorld, float4(vpos,1));
 	fixed4 cascadeWeights = GET_CASCADE_WEIGHTS(wpos, vpos.z);
 	float4 coord = GET_SHADOW_COORDINATES(wpos, cascadeWeights);
+	coord.w = 1.0;
 
 #if defined(USE_NOISE_TEX)
 	float random = tex2D(_NoiseTexture, i.uv.xy * NoiseCoords.xy * _ScreenParams.xy).a;
+
+	//remap from [0..1] to [-1..1]
 	random = mad(random, 2.0, -1.0);
+
+	//concentrate the values near 0
 	random = sign(random) * (1.0 - sqrt(1.0 - abs(random)));
 #else
 	float random = ValueNoise(wpos.xyz);
@@ -629,7 +643,8 @@ fixed4 frag_pcss (v2f i) : SV_Target
 //#if USE_CASCADE_BLENDING && !defined(SHADOWS_SPLIT_SPHERES) && !defined(SHADOWS_SINGLE_CASCADE)
 #if defined(USE_CASCADE_BLENDING) && !defined(SHADOWS_SINGLE_CASCADE)
 	half4 z4 = (float4(vpos.z,vpos.z,vpos.z,vpos.z) - _LightSplitsNear) / (_LightSplitsFar - _LightSplitsNear);
-	half alpha = dot(z4 * cascadeWeights, half4(1,1,1,1));
+
+	half alpha = dot(z4 * cascadeWeights, half4(1, 1, 1, 1));
 
 	UNITY_BRANCH
 	if (alpha > 1.0 - CascadeBlendDistance)
