@@ -23,6 +23,10 @@ public class PCSSLight : MonoBehaviour
     [Space(20f)]
     [Range(0f, 7.5f)]
     public float Softness = 1f;
+    [Range(0f, 5f)]
+    public float SoftnessFalloff = 4f;
+    //[Range(0f, 1f)]
+    //public float NearPlane = .1f;
 
     [Space(20f)]
     [Range(0f, 0.15f)]
@@ -53,7 +57,7 @@ public class PCSSLight : MonoBehaviour
     private CommandBuffer copyShadowBuffer;
     private Light _light;
 
-
+    #region Initialization
     public void OnEnable ()
     {
         Setup();
@@ -101,6 +105,13 @@ public class PCSSLight : MonoBehaviour
         UpdateCommandBuffer();
     }
 
+    public void CreateShadowRenderTexture ()
+    {
+        shadowRenderTexture = new RenderTexture(resolution, resolution, 0, format);
+        shadowRenderTexture.filterMode = filterMode;
+        shadowRenderTexture.useMipMap = false;
+    }
+
     [ContextMenu("Reset Shadows To Default")]
     public void ResetShadowMode ()
     {
@@ -115,7 +126,9 @@ public class PCSSLight : MonoBehaviour
 
         _light.RemoveCommandBuffer(LightEvent.AfterShadowMap, copyShadowBuffer);
     }
+    #endregion
 
+    #region UpdateSettings
     public void UpdateShaderValues ()
     {
         Shader.SetGlobalInt("Blocker_Samples", Blocker_SampleCount);
@@ -126,7 +139,9 @@ public class PCSSLight : MonoBehaviour
         else
             shadowRenderTexture.filterMode = filterMode;
 
-        Shader.SetGlobalFloat("Softness", Softness * Softness / 32f / Mathf.Sqrt(QualitySettings.shadowDistance));
+        Shader.SetGlobalFloat("Softness", Softness / 64f / Mathf.Sqrt(QualitySettings.shadowDistance));
+        Shader.SetGlobalFloat("SoftnessFalloff", Mathf.Exp(SoftnessFalloff));
+        //Shader.SetGlobalFloat("NearPlane", NearPlane);
 
         Shader.SetGlobalFloat("RECEIVER_PLANE_MIN_FRACTIONAL_ERROR", MaxStaticGradientBias);
         Shader.SetGlobalFloat("Blocker_GradientBias", Blocker_GradientBias);
@@ -153,6 +168,7 @@ public class PCSSLight : MonoBehaviour
         int maxSamples = Mathf.Max(Blocker_SampleCount, PCF_SampleCount);
 
         SetFlag("POISSON_32", maxSamples < 33);
+        SetFlag("POISSON_64", maxSamples > 33);
     }
 
     public void UpdateCommandBuffer ()
@@ -165,13 +181,7 @@ public class PCSSLight : MonoBehaviour
         copyShadowBuffer.Blit(BuiltinRenderTextureType.CurrentActive, shadowRenderTexture);
         copyShadowBuffer.SetGlobalTexture(shadowmapPropID, shadowRenderTexture);
     }
-
-    public void CreateShadowRenderTexture ()
-    {
-        shadowRenderTexture = new RenderTexture(resolution, resolution, 0, format);
-        shadowRenderTexture.filterMode = filterMode;
-        shadowRenderTexture.useMipMap = false;
-    } 
+    #endregion
 
     public void SetFlag (string shaderKeyword, bool value)
     {

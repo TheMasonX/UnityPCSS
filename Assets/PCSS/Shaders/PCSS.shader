@@ -251,6 +251,9 @@ uniform float Blocker_Rotation = .5;
 uniform float PCF_Rotation = .5;
 
 uniform float Softness = 1.0;
+uniform float SoftnessFalloff = 1.0;
+//uniform float NearPlane = .1;
+
 uniform float Blocker_GradientBias = 0.0;
 uniform float PCF_GradientBias = 1.0;
 uniform float CascadeBlendDistance = .5;
@@ -502,11 +505,15 @@ float PCF_Filter(float2 uv, float depth, float filterRadiusUV, float2 receiverPl
 =========================================================================================================================================
 */
 
-
 float PCSS_Main(float4 coords, float2 receiverPlaneDepthBias, float random)
 {
 	float2 uv = coords.xy;
 	float depth = coords.z;
+	float zAwareDepth = depth;
+
+#if defined(UNITY_REVERSED_Z)
+	zAwareDepth = 1.0 - depth;
+#endif
 
 	//float rotationAngle = random * 6.283185307179586476925286766559;
 	float rotationAngle = random * 3.1415926;
@@ -518,6 +525,7 @@ float PCSS_Main(float4 coords, float2 receiverPlaneDepthBias, float random)
 
 	// STEP 1: blocker search
 	//float searchSize = Softness * (depth - _LightShadowData.w) / depth;
+	//float searchSize = Softness * saturate(zAwareDepth - NearPlane) / zAwareDepth;
 	float2 blockerInfo = FindBlocker(uv, depth, Softness, receiverPlaneDepthBias, rotationTrig);
 
 	if (blockerInfo.y < 1)
@@ -527,11 +535,9 @@ float PCSS_Main(float4 coords, float2 receiverPlaneDepthBias, float random)
 	}
 
 	// STEP 2: penumbra size
-#if defined(UNITY_REVERSED_Z)
-	float penumbra = (1.0 - depth) - blockerInfo.x;
-#else
-	float penumbra = depth - blockerInfo.x;
-#endif
+	//float penumbra = zAwareDepth * zAwareDepth - blockerInfo.x * blockerInfo.x;
+	float penumbra = zAwareDepth - blockerInfo.x;
+	penumbra = 1.0 - pow(1.0 - penumbra, SoftnessFalloff);
 
 	float filterRadiusUV = penumbra * Softness;
 	//filterRadiusUV *= filterRadiusUV;
@@ -584,7 +590,7 @@ fixed4 frag_pcss (v2f i) : SV_Target
 #if defined(USE_NOISE_TEX)
 	float random = tex2D(_NoiseTexture, i.uv.xy * NoiseCoords.xy * _ScreenParams.xy).a;
 	random = mad(random, 2.0, -1.0);
-	random = sign(random) * (1.0 - sqrt(1.0 - abs(random)));
+	//random = sign(random) * (1.0 - sqrt(1.0 - abs(random)));
 #else
 	float random = ValueNoise(wpos.xyz);
 #endif
