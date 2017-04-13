@@ -134,13 +134,17 @@ public class PCSSLight : MonoBehaviour
         Shader.SetGlobalInt("Blocker_Samples", Blocker_SampleCount);
         Shader.SetGlobalInt("PCF_Samples", PCF_SampleCount);
 
-        if (shadowRenderTexture.format != format)
-            CreateShadowRenderTexture();
-        else
-            shadowRenderTexture.filterMode = filterMode;
+        if (shadowRenderTexture)
+        {
+            if (shadowRenderTexture.format != format)
+                CreateShadowRenderTexture();
+            else
+                shadowRenderTexture.filterMode = filterMode;
+        }
 
         Shader.SetGlobalFloat("Softness", Softness / 64f / Mathf.Sqrt(QualitySettings.shadowDistance));
         Shader.SetGlobalFloat("SoftnessFalloff", Mathf.Exp(SoftnessFalloff));
+        SetFlag("USE_FALLOFF", SoftnessFalloff > Mathf.Epsilon);
         //Shader.SetGlobalFloat("NearPlane", NearPlane);
 
         Shader.SetGlobalFloat("RECEIVER_PLANE_MIN_FRACTIONAL_ERROR", MaxStaticGradientBias);

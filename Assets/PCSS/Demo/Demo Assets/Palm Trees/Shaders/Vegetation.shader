@@ -26,11 +26,10 @@
 		LOD 200
 
 		CGPROGRAM
-		#pragma surface surf Standard vertex:vert alphatest:_Cutoff addshadow fullforwardshadows
-
+		#pragma surface surf Standard vertex:vert alphatest:_Cutoff addshadow fullforwardshadows nolightmap
 		#pragma target 3.0
 
-		sampler2D _MainTex; uniform float4 _MainTex_ST;
+		sampler2D _MainTex;
 		sampler2D _NormalMap;
 		sampler2D _WindNoise;
 
@@ -40,19 +39,13 @@
 			float3 normal : NORMAL;
 			float4 tangent : TANGENT;
 			float4 color : COLOR;
-			float2 uv : TEXCOORD0;
-			float2 texcoord1 : TEXCOORD1;
-			float2 texcoord2 : TEXCOORD2;
-			UNITY_VERTEX_INPUT_INSTANCE_ID
+			float2 texcoord : TEXCOORD0;
 		};
 
 		struct Input
 		{
 			float4 pos : SV_POSITION;
-			float2 texcoord : TEXCOORD0;
-
-			UNITY_VERTEX_INPUT_INSTANCE_ID
-			UNITY_VERTEX_OUTPUT_STEREO
+			float2 uv_MainTex : TEXCOORD0;
 		};
 
 		fixed4 _Wind_Direction;
@@ -65,33 +58,20 @@
 		float _WindFrequency;
 		float _WindAmplitude;
 
-		// #pragma instancing_options assumeuniformscaling
-		UNITY_INSTANCING_CBUFFER_START(Props)
-			// put more per-instance properties here
-		UNITY_INSTANCING_CBUFFER_END
-
-		void vert(inout appdata v, out Input o)
+		void vert(inout appdata v)
 		{
-			UNITY_INITIALIZE_OUTPUT(Input, o);
-			UNITY_SETUP_INSTANCE_ID(v);
-			UNITY_TRANSFER_INSTANCE_ID(v, o);
-			UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
-
-			o.texcoord = TRANSFORM_TEX(v.uv, _MainTex);
-
 			float3 pos = mul(v.vertex, unity_ObjectToWorld);
 			float noiseA = tex2Dlod(_WindNoise, float4(pos.xz * _WindNoiseScale + _Time.x * float2(_WindNoiseSpeed, _WindNoiseSpeed), 0.0, 0.0)).r * _WindNoiseStrength;
 			 
 			v.vertex.xyz += (mul(_Wind_Direction.xyz, unity_WorldToObject) * v.color.r * sin(v.color.b*3.141592654 + (_Time.y + noiseA) *_WindFrequency) *_WindAmplitude);
-			o.pos = UnityObjectToClipPos(v.vertex);
 		}
 
 		void surf(Input IN, inout SurfaceOutputStandard o)
 		{
-			fixed4 c = tex2D(_MainTex, IN.texcoord);
+			fixed4 c = tex2D(_MainTex, IN.uv_MainTex);
 			o.Albedo = c.rgb;
 
-			o.Normal = UnpackNormal(tex2D(_NormalMap, IN.texcoord));
+			o.Normal = UnpackNormal(tex2D(_NormalMap, IN.uv_MainTex));
 			o.Metallic = _Metallic;
 			o.Smoothness = _Gloss;
 			o.Alpha = c.a;

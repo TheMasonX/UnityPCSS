@@ -525,8 +525,8 @@ float PCSS_Main(float4 coords, float2 receiverPlaneDepthBias, float random)
 
 	// STEP 1: blocker search
 	//float searchSize = Softness * (depth - _LightShadowData.w) / depth;
-	//float searchSize = Softness * saturate(zAwareDepth - NearPlane) / zAwareDepth;
-	float2 blockerInfo = FindBlocker(uv, depth, Softness, receiverPlaneDepthBias, rotationTrig);
+	float searchSize = Softness * saturate(zAwareDepth - .02) / zAwareDepth;
+	float2 blockerInfo = FindBlocker(uv, depth, searchSize, receiverPlaneDepthBias, rotationTrig);
 
 	if (blockerInfo.y < 1)
 	{
@@ -537,7 +537,10 @@ float PCSS_Main(float4 coords, float2 receiverPlaneDepthBias, float random)
 	// STEP 2: penumbra size
 	//float penumbra = zAwareDepth * zAwareDepth - blockerInfo.x * blockerInfo.x;
 	float penumbra = zAwareDepth - blockerInfo.x;
+
+#if defined(USE_FALLOFF)
 	penumbra = 1.0 - pow(1.0 - penumbra, SoftnessFalloff);
+#endif
 
 	float filterRadiusUV = penumbra * Softness;
 	//filterRadiusUV *= filterRadiusUV;
@@ -742,6 +745,7 @@ Subshader
 		#pragma multi_compile POISSON_32 POISSON_64
 
 		#pragma shader_feature ORTHOGRAPHIC_SUPPORTED
+		#pragma shader_feature USE_FALLOFF
 		#pragma shader_feature USE_STATIC_BIAS
 		#pragma shader_feature USE_BLOCKER_BIAS
 		#pragma shader_feature USE_PCF_BIAS
@@ -778,6 +782,7 @@ Subshader
 		#pragma multi_compile POISSON_32 POISSON_64
 
 		#pragma shader_feature ORTHOGRAPHIC_SUPPORTED
+		#pragma shader_feature USE_FALLOFF
 		#pragma shader_feature USE_STATIC_BIAS
 		#pragma shader_feature USE_BLOCKER_BIAS
 		#pragma shader_feature USE_PCF_BIAS

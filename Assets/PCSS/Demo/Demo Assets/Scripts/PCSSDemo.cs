@@ -12,12 +12,17 @@ public class PCSSDemo : MonoBehaviour
     public Text softnessText;
 
     [Space(10f)]
+    public Slider softnessFalloffSlider;
+    public Text softnessFalloffText;
+
+    [Space(10f)]
     public Slider blockerSlider;
     public Text blockerText;
 
     [Space(10f)]
     public Slider pcfSlider;
     public Text pcfText;
+
 
     private void Awake ()
     {
@@ -29,6 +34,9 @@ public class PCSSDemo : MonoBehaviour
 
         softnessSlider.value = pcssScript.Softness;
         SetSoftness(softnessSlider.value);
+
+        softnessFalloffSlider.value = pcssScript.SoftnessFalloff;
+        SetSoftnessFalloff(softnessFalloffSlider.value);
     }
 
     public void SetBlockerSamples (float samplesFloat)
@@ -51,6 +59,13 @@ public class PCSSDemo : MonoBehaviour
     {
         pcssScript.Softness = softness;
         softnessText.text = string.Format("Softness: {0}", softness.ToString("N2"));
+        pcssScript.UpdateShaderValues();
+    }
+
+    public void SetSoftnessFalloff (float softnessFalloff)
+    {
+        pcssScript.SoftnessFalloff = softnessFalloff;
+        softnessFalloffText.text = string.Format("Softness Falloff: {0}", softnessFalloff.ToString("N2"));
         pcssScript.UpdateShaderValues();
     }
 }

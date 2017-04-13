@@ -154,6 +154,7 @@ public class RandomPlacement : MonoBehaviour
                 GameObject obj = Instantiate(prefabs[i].prefab, position, Quaternion.Euler(0f, Random.value * 360f, 0f));
                 obj.transform.localScale *= prefabs[i].scaleRange.RandomValue();
                 obj.transform.SetParent(container, true);
+                obj.isStatic = true;
             }
         }
         container.SetParent(transform, true);
