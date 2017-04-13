@@ -26,7 +26,9 @@ struct appdata
 {
 	float4 vertex : POSITION;
 	float2 texcoord : TEXCOORD0;
-#ifdef UNITY_STEREO_INSTANCING_ENABLED
+#if (UNITY_VERSION < 560)
+	float3 ray : NORMAL;
+#elif defined(UNITY_STEREO_INSTANCING_ENABLED)
 	float3 ray[2] : TEXCOORD1;
 #else
 	float3 ray : TEXCOORD1;
@@ -57,9 +59,11 @@ struct v2f
 v2f vert (appdata v)
 {
 	v2f o;
+#if UNITY_VERSION >= 560
 	UNITY_SETUP_INSTANCE_ID(v);
 	UNITY_TRANSFER_INSTANCE_ID(v, o);
 	UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
+#endif
 	float4 clipPos = UnityObjectToClipPos(v.vertex);
 	o.pos = clipPos;
 	o.uv.xy = v.texcoord;
@@ -68,7 +72,8 @@ v2f vert (appdata v)
 	o.uv.zw = ComputeNonStereoScreenPos(clipPos);
 
 	// Perspective case
-#ifdef UNITY_STEREO_INSTANCING_ENABLED
+	//Only do stero instancing in 5.6+
+#if (UNITY_VERSION >= 560) && defined(UNITY_STEREO_INSTANCING_ENABLED)
 	o.ray = v.ray[unity_StereoEyeIndex];
 #else
 	o.ray = v.ray;
@@ -93,7 +98,12 @@ v2f vert (appdata v)
 	return o;
 }
 
-UNITY_DECLARE_DEPTH_TEXTURE(_CameraDepthTexture);
+//changed in 5.6
+#if UNITY_VERSION >= 560
+	UNITY_DECLARE_DEPTH_TEXTURE(_CameraDepthTexture);
+#else
+	sampler2D_float _CameraDepthTexture;
+#endif
 
 // sizes of cascade projections, relative to first one
 float4 unity_ShadowCascadeScales;
@@ -564,7 +574,10 @@ float PCSS_Main(float4 coords, float2 receiverPlaneDepthBias, float random)
  */
 fixed4 frag_hard (v2f i) : SV_Target
 {
-    UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i); // required for sampling the correct slice of the shadow map render texture array
+	//only works in 5.6+
+#if UNITY_VERSION >= 560
+	UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i); // required for sampling the correct slice of the shadow map render texture array
+#endif
 
 	float3 vpos = computeCameraSpacePosFromDepth(i);
 
@@ -581,7 +594,10 @@ fixed4 frag_hard (v2f i) : SV_Target
  */
 fixed4 frag_pcss (v2f i) : SV_Target
 {
+	//only works in 5.6+
+#if UNITY_VERSION >= 560
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i); // required for sampling the correct slice of the shadow map render texture array
+#endif
 
 	float3 vpos = computeCameraSpacePosFromDepth(i);
 
