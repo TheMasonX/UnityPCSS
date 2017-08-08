@@ -744,12 +744,16 @@ SubShader
 }
 
 // ----------------------------------------------------------------------------------------
-// NOTE: PCSS Subshader, just had to leave the "PCF" tag so that Unity can find it
+//	Unity 2017
+// ----------------------------------------------------------------------------------------
+// NOTE: Same two subshaders as the Unity 2017 versions, but they changed the "ShadowmapFilter" tag names, so I've included both sets for now (wasn't having any luck with the UNITY_VERSION checks used elsewhere for 5.5 compatibility)
+// PCSS Subshader, just had to leave the "PCF" tag so that Unity can find it
 // Requires SM3 GPU.
 
 Subshader
 {
-	Tags {"ShadowmapFilter" = "PCF_5x5"}
+	Tags{ "ShadowmapFilter" = "PCF_SOFT" }
+
 	Pass
 	{
 		ZWrite Off ZTest Always Cull Off
@@ -779,11 +783,77 @@ Subshader
 	}
 }
 
-// ----------------------------------------------------------------------------------------
-// NOTE: PCSS Subshader, just had to leave the "PCF" tag so that Unity can find it
-// Requires SM3 GPU.
 // This version does inv projection at the PS level, slower and less precise however more general.
+Subshader
+{
+	Tags{ "ShadowmapFilter" = "PCF_SOFT_FORCE_INV_PROJECTION_IN_PS" }
+	Pass
+	{
+		ZWrite Off ZTest Always Cull Off
 
+		CGPROGRAM
+		#pragma vertex vert
+		#pragma fragment frag_pcss
+		#pragma multi_compile_shadowcollector
+		#pragma multi_compile POISSON_32 POISSON_64
+
+		#pragma shader_feature ORTHOGRAPHIC_SUPPORTED
+		#pragma shader_feature USE_FALLOFF
+		#pragma shader_feature USE_STATIC_BIAS
+		#pragma shader_feature USE_BLOCKER_BIAS
+		#pragma shader_feature USE_PCF_BIAS
+		#pragma shader_feature USE_CASCADE_BLENDING
+		#pragma shader_feature ROTATE_SAMPLES
+		#pragma shader_feature USE_NOISE_TEX
+		#pragma target 4.0
+		//#pragma target 3.0
+
+		inline float3 computeCameraSpacePosFromDepth(v2f i)
+		{
+			return computeCameraSpacePosFromDepthAndInvProjMat(i);
+		}
+		ENDCG
+	}
+}
+
+// ----------------------------------------------------------------------------------------
+// Unity 5.6 and below
+// ----------------------------------------------------------------------------------------
+
+Subshader
+{
+	Tags{ "ShadowmapFilter" = "PCF_5x5" }
+
+	Pass
+	{
+		ZWrite Off ZTest Always Cull Off
+
+		CGPROGRAM
+		#pragma vertex vert
+		#pragma fragment frag_pcss
+		#pragma multi_compile_shadowcollector
+		#pragma multi_compile POISSON_32 POISSON_64
+
+		#pragma shader_feature ORTHOGRAPHIC_SUPPORTED
+		#pragma shader_feature USE_FALLOFF
+		#pragma shader_feature USE_STATIC_BIAS
+		#pragma shader_feature USE_BLOCKER_BIAS
+		#pragma shader_feature USE_PCF_BIAS
+		#pragma shader_feature USE_CASCADE_BLENDING
+		#pragma shader_feature ROTATE_SAMPLES
+		#pragma shader_feature USE_NOISE_TEX
+		#pragma target 4.0
+		//#pragma target 3.0
+
+		inline float3 computeCameraSpacePosFromDepth(v2f i)
+		{
+			return computeCameraSpacePosFromDepthAndVSInfo(i);
+		}
+		ENDCG
+	}
+}
+
+// This version does inv projection at the PS level, slower and less precise however more general.
 Subshader
 {
 	Tags{ "ShadowmapFilter" = "PCF_5x5_FORCE_INV_PROJECTION_IN_PS" }

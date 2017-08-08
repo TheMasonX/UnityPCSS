@@ -74,7 +74,8 @@ public class FrameRate : MonoBehaviour
         graphicsAPIText.text = string.Format("Graphics API: {0}", SystemInfo.graphicsDeviceType);
         string vysncText = (QualitySettings.vSyncCount > 0) ? "Enabled" : "Disabled";
         vsyncStatusText.text = string.Format("VSync: {0}", vysncText);
-        frameRateText.text = string.Format("Frame Rate: Avg {0} | Min {1} | Max {2}", avgFPS.TS(), minFPS.TS(), maxFPS.TS());
+        frameRateText.text = string.Format("Average Frame Rate: {0} FPS", avgFPS.TS());
+        //frameRateText.text = string.Format("Frame Rate: Avg {0} | Min {1} | Max {2}", avgFPS.TS(), minFPS.TS(), maxFPS.TS());
         //frameRateText.text = string.Format("Frame Rate: Avg {0} | Min {1} | Max {2} | Low {3} | High {4}", avgFPS.TS(), minFPS.TS(), maxFPS.TS(), lowFPS.TS(), highFPS.TS());
         Invoke("UpdateUI", updateInterval);
     }
