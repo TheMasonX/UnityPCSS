@@ -23,6 +23,8 @@ public class PCSSDemo : MonoBehaviour
     public Slider pcfSlider;
     public Text pcfText;
 
+	[Space(10f)]
+	public Dropdown shadowMode;
 
     private void Awake ()
     {
@@ -37,6 +39,8 @@ public class PCSSDemo : MonoBehaviour
 
         softnessFalloffSlider.value = pcssScript.SoftnessFalloff;
         SetSoftnessFalloff(softnessFalloffSlider.value);
+
+//		SetShadowMode(shadowMode.value);
     }
 
     public void SetBlockerSamples (float samplesFloat)
@@ -68,4 +72,23 @@ public class PCSSDemo : MonoBehaviour
         softnessFalloffText.text = string.Format("Softness Falloff: {0}", softnessFalloff.ToString("N2"));
         pcssScript.UpdateShaderValues();
     }
+
+	public void SetShadowMode (int mode)
+	{
+		switch (mode) {
+		case(0):
+			pcssScript.ResetShadowMode();
+			pcssScript._light.shadows = LightShadows.Soft;
+			pcssScript.Setup();
+			break;
+		case(1):
+			pcssScript.ResetShadowMode ();
+			pcssScript._light.shadows = LightShadows.Soft;
+			break;
+		case(2):
+			pcssScript.ResetShadowMode();
+			pcssScript._light.shadows = LightShadows.Hard;
+			break;
+		}
+	}
 }

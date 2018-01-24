@@ -6,6 +6,8 @@ using UnityEngine.Rendering;
 [ExecuteInEditMode]
 public class PCSSLight : MonoBehaviour
 {
+//	[Tooltip("Disable when building, as Unity 2017 seems to have issues with the 'ResetShadowMode()' being called during 'OnDisable()' in builds, though it works fine in the editor")]
+//	public bool resetOnDisable = false;
     public int resolution = 4096;
     public bool customShadowResolution = false;
 
@@ -47,7 +49,9 @@ public class PCSSLight : MonoBehaviour
     [Space(20f)]
     public RenderTexture shadowRenderTexture;
     public RenderTextureFormat format = RenderTextureFormat.RFloat;
-    public FilterMode filterMode = FilterMode.Bilinear;
+	public FilterMode filterMode = FilterMode.Bilinear;
+	[PowRange(0, 8, 2, true)]
+	public int MSAA = 0;
     private LightEvent lightEvent = LightEvent.AfterShadowMap;
 
     public string shaderName = "Hidden/PCSS";
@@ -55,7 +59,8 @@ public class PCSSLight : MonoBehaviour
     private int shadowmapPropID;
 
     private CommandBuffer copyShadowBuffer;
-    private Light _light;
+	[HideInInspector]
+	public Light _light;
 
     #region Initialization
     public void OnEnable ()
@@ -65,7 +70,9 @@ public class PCSSLight : MonoBehaviour
 
     public void OnDisable ()
     {
-        ResetShadowMode();
+		//Unity 2017 seems to have issues with the 'ResetShadowMode()' being called during 'OnDisable()' in builds, though it works fine in the editor
+		if(Application.isEditor)
+        	ResetShadowMode();
     }
 
     [ContextMenu("Reinitialize")]
@@ -74,7 +81,7 @@ public class PCSSLight : MonoBehaviour
         _light = GetComponent<Light>();
         if (!_light)
             return;
-
+		
         resolution = Mathf.ClosestPowerOfTwo(resolution);
         if (customShadowResolution)
             _light.shadowCustomResolution = resolution;
@@ -110,11 +117,15 @@ public class PCSSLight : MonoBehaviour
         shadowRenderTexture = new RenderTexture(resolution, resolution, 0, format);
         shadowRenderTexture.filterMode = filterMode;
         shadowRenderTexture.useMipMap = false;
+		shadowRenderTexture.antiAliasing = Mathf.Clamp(MSAA, 1, 8);
     }
 
     [ContextMenu("Reset Shadows To Default")]
     public void ResetShadowMode ()
     {
+		if (!Application.isEditor)
+			return;
+		
         GraphicsSettings.SetCustomShader(BuiltinShaderType.ScreenSpaceShadows, Shader.Find("Hidden/Internal-ScreenSpaceShadows"));
         GraphicsSettings.SetShaderMode(BuiltinShaderType.ScreenSpaceShadows, BuiltinShaderMode.Disabled);
         _light.shadowCustomResolution = 0;
@@ -136,10 +147,12 @@ public class PCSSLight : MonoBehaviour
 
         if (shadowRenderTexture)
         {
-            if (shadowRenderTexture.format != format)
-                CreateShadowRenderTexture();
-            else
-                shadowRenderTexture.filterMode = filterMode;
+			if (shadowRenderTexture.format != format || shadowRenderTexture.antiAliasing != Mathf.Clamp(MSAA, 1, 8))
+				CreateShadowRenderTexture();
+			else
+			{
+				shadowRenderTexture.filterMode = filterMode;
+			}
         }
 
         Shader.SetGlobalFloat("Softness", Softness / 64f / Mathf.Sqrt(QualitySettings.shadowDistance));

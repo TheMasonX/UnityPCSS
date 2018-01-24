@@ -74,7 +74,8 @@ v2f vert (appdata v)
 	// Perspective case
 	//Only do stero instancing in 5.6+
 #if (UNITY_VERSION >= 560) && defined(UNITY_STEREO_INSTANCING_ENABLED)
-	o.ray = v.ray[unity_StereoEyeIndex];
+//	o.ray = v.ray[unity_StereoEyeIndex];
+	o.ray = unity_StereoEyeIndex == 0 ? v.ray0 : v.ray1;
 #else
 	o.ray = v.ray;
 #endif
@@ -772,8 +773,8 @@ Subshader
 		#pragma shader_feature USE_CASCADE_BLENDING
 		#pragma shader_feature ROTATE_SAMPLES
 		#pragma shader_feature USE_NOISE_TEX
-		#pragma target 4.0
-		//#pragma target 3.0
+		//#pragma target 4.0
+		#pragma target 3.0
 
 		inline float3 computeCameraSpacePosFromDepth(v2f i)
 		{
@@ -805,8 +806,8 @@ Subshader
 		#pragma shader_feature USE_CASCADE_BLENDING
 		#pragma shader_feature ROTATE_SAMPLES
 		#pragma shader_feature USE_NOISE_TEX
-		#pragma target 4.0
-		//#pragma target 3.0
+		//#pragma target 4.0
+		#pragma target 3.0
 
 		inline float3 computeCameraSpacePosFromDepth(v2f i)
 		{
@@ -842,8 +843,8 @@ Subshader
 		#pragma shader_feature USE_CASCADE_BLENDING
 		#pragma shader_feature ROTATE_SAMPLES
 		#pragma shader_feature USE_NOISE_TEX
-		#pragma target 4.0
-		//#pragma target 3.0
+		//#pragma target 4.0
+		#pragma target 3.0
 
 		inline float3 computeCameraSpacePosFromDepth(v2f i)
 		{
@@ -875,8 +876,8 @@ Subshader
 		#pragma shader_feature USE_CASCADE_BLENDING
 		#pragma shader_feature ROTATE_SAMPLES
 		#pragma shader_feature USE_NOISE_TEX
-		#pragma target 4.0
-		//#pragma target 3.0
+		//#pragma target 4.0
+		#pragma target 3.0
 
 		inline float3 computeCameraSpacePosFromDepth(v2f i)
 		{

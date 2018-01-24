@@ -236,7 +236,7 @@ namespace UnityStandardAssets.Characters.FirstPerson
 
         private void RotateView()
         {
-            if(!UnityEngine.VR.VRSettings.enabled)
+            if(!UnityEngine.XR.XRSettings.enabled)
                 m_MouseLook.LookRotation (transform, m_Camera.transform);
         }
 
