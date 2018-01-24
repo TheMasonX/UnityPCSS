@@ -16,8 +16,8 @@ public class PCSSLight : MonoBehaviour
     public int PCF_SampleCount = 16;
 
     [Space(20f)]
-    public bool RotateSamples = true;
-    public bool UseNoiseTexture = true;
+//    public bool RotateSamples = true;
+//    public bool UseNoiseTexture = true;
     public Texture2D noiseTexture;
 
     [Space(20f)]
@@ -95,13 +95,13 @@ public class PCSSLight : MonoBehaviour
             _light.shadowCustomResolution = 0;
 
         shader = Shader.Find(shaderName);
-		if (!Application.isEditor)
-		{
-			if (shader)
-				Debug.LogErrorFormat("Custom Shadow Shader Found: {0} | Supported {1}", shader.name, shader.isSupported);
-			else
-				Debug.LogError("Custom Shadow Shader Not Found!!!");
-		}
+//		if (!Application.isEditor)
+//		{
+//			if (shader)
+//				Debug.LogErrorFormat("Custom Shadow Shader Found: {0} | Supported {1}", shader.name, shader.isSupported);
+//			else
+//				Debug.LogError("Custom Shadow Shader Not Found!!!");
+//		}
         shadowmapPropID = Shader.PropertyToID("_ShadowMap");
 
         copyShadowBuffer = new CommandBuffer();
@@ -136,18 +136,14 @@ public class PCSSLight : MonoBehaviour
     [ContextMenu("Reset Shadows To Default")]
     public void ResetShadowMode ()
     {
-//		//Unity 2017 seems to have issues with the 'ResetShadowMode()' being called during 'OnDisable()' in builds, though it works fine in the editor
-//		if (!Application.isEditor)
-//			return;
-
 		builtinShader = Shader.Find(builtinShaderName);
-		if (!Application.isEditor)
-		{
-			if (builtinShader)
-				Debug.LogErrorFormat("Built-In Shadow Shader Found: {0} | Supported {1}", builtinShader.name, builtinShader.isSupported);
-			else
-				Debug.LogError("Shadow Shader Not Found!!!");
-		}
+//		if (!Application.isEditor)
+//		{
+//			if (builtinShader)
+//				Debug.LogErrorFormat("Built-In Shadow Shader Found: {0} | Supported {1}", builtinShader.name, builtinShader.isSupported);
+//			else
+//				Debug.LogError("Shadow Shader Not Found!!!");
+//		}
 
 		GraphicsSettings.SetCustomShader(BuiltinShaderType.ScreenSpaceShadows, builtinShader);
         GraphicsSettings.SetShaderMode(BuiltinShaderType.ScreenSpaceShadows, BuiltinShaderMode.Disabled);
@@ -195,8 +191,8 @@ public class PCSSLight : MonoBehaviour
         SetFlag("USE_BLOCKER_BIAS", Blocker_GradientBias > 0);
         SetFlag("USE_PCF_BIAS", PCF_GradientBias > 0);
 
-        SetFlag("ROTATE_SAMPLES", RotateSamples);
-        SetFlag("USE_NOISE_TEX", UseNoiseTexture);
+//        SetFlag("ROTATE_SAMPLES", RotateSamples);
+//        SetFlag("USE_NOISE_TEX", UseNoiseTexture);
 
         if (noiseTexture)
         {
