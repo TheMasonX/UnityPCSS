@@ -6,8 +6,6 @@ using UnityEngine.Rendering;
 [ExecuteInEditMode]
 public class PCSSLight : MonoBehaviour
 {
-//	[Tooltip("Disable when building, as Unity 2017 seems to have issues with the 'ResetShadowMode()' being called during 'OnDisable()' in builds, though it works fine in the editor")]
-//	public bool resetOnDisable = false;
     public int resolution = 4096;
     public bool customShadowResolution = false;
 
@@ -50,13 +48,23 @@ public class PCSSLight : MonoBehaviour
     public RenderTexture shadowRenderTexture;
     public RenderTextureFormat format = RenderTextureFormat.RFloat;
 	public FilterMode filterMode = FilterMode.Bilinear;
-	[PowRange(0, 8, 2, true)]
-	public int MSAA = 0;
+	public enum antiAliasing
+	{
+		None = 1,
+		Two = 2,
+		Four = 4,
+		Eight = 8,
+	}
+	public antiAliasing MSAA = antiAliasing.None;
     private LightEvent lightEvent = LightEvent.AfterShadowMap;
 
     public string shaderName = "Hidden/PCSS";
-    private Shader shader;
+	public Shader shader;
+	public string builtinShaderName = "Hidden/Built-In-ScreenSpaceShadows";
+	public Shader builtinShader;
     private int shadowmapPropID;
+	public ShaderVariantCollection shaderVariants;
+	private List<string> keywords = new List<string>();
 
     private CommandBuffer copyShadowBuffer;
 	[HideInInspector]
@@ -70,9 +78,7 @@ public class PCSSLight : MonoBehaviour
 
     public void OnDisable ()
     {
-		//Unity 2017 seems to have issues with the 'ResetShadowMode()' being called during 'OnDisable()' in builds, though it works fine in the editor
-		if(Application.isEditor)
-        	ResetShadowMode();
+        ResetShadowMode();
     }
 
     [ContextMenu("Reinitialize")]
@@ -89,6 +95,13 @@ public class PCSSLight : MonoBehaviour
             _light.shadowCustomResolution = 0;
 
         shader = Shader.Find(shaderName);
+		if (!Application.isEditor)
+		{
+			if (shader)
+				Debug.LogErrorFormat("Custom Shadow Shader Found: {0} | Supported {1}", shader.name, shader.isSupported);
+			else
+				Debug.LogError("Custom Shadow Shader Not Found!!!");
+		}
         shadowmapPropID = Shader.PropertyToID("_ShadowMap");
 
         copyShadowBuffer = new CommandBuffer();
@@ -117,16 +130,26 @@ public class PCSSLight : MonoBehaviour
         shadowRenderTexture = new RenderTexture(resolution, resolution, 0, format);
         shadowRenderTexture.filterMode = filterMode;
         shadowRenderTexture.useMipMap = false;
-		shadowRenderTexture.antiAliasing = Mathf.Clamp(MSAA, 1, 8);
+		shadowRenderTexture.antiAliasing = (int)MSAA;
     }
 
     [ContextMenu("Reset Shadows To Default")]
     public void ResetShadowMode ()
     {
+//		//Unity 2017 seems to have issues with the 'ResetShadowMode()' being called during 'OnDisable()' in builds, though it works fine in the editor
+//		if (!Application.isEditor)
+//			return;
+
+		builtinShader = Shader.Find(builtinShaderName);
 		if (!Application.isEditor)
-			return;
-		
-        GraphicsSettings.SetCustomShader(BuiltinShaderType.ScreenSpaceShadows, Shader.Find("Hidden/Internal-ScreenSpaceShadows"));
+		{
+			if (builtinShader)
+				Debug.LogErrorFormat("Built-In Shadow Shader Found: {0} | Supported {1}", builtinShader.name, builtinShader.isSupported);
+			else
+				Debug.LogError("Shadow Shader Not Found!!!");
+		}
+
+		GraphicsSettings.SetCustomShader(BuiltinShaderType.ScreenSpaceShadows, builtinShader);
         GraphicsSettings.SetShaderMode(BuiltinShaderType.ScreenSpaceShadows, BuiltinShaderMode.Disabled);
         _light.shadowCustomResolution = 0;
         DestroyImmediate(shadowRenderTexture);
@@ -142,12 +165,13 @@ public class PCSSLight : MonoBehaviour
     #region UpdateSettings
     public void UpdateShaderValues ()
     {
+		keywords.Clear();
         Shader.SetGlobalInt("Blocker_Samples", Blocker_SampleCount);
         Shader.SetGlobalInt("PCF_Samples", PCF_SampleCount);
 
         if (shadowRenderTexture)
         {
-			if (shadowRenderTexture.format != format || shadowRenderTexture.antiAliasing != Mathf.Clamp(MSAA, 1, 8))
+			if (shadowRenderTexture.format != format || shadowRenderTexture.antiAliasing != (int)MSAA)
 				CreateShadowRenderTexture();
 			else
 			{
@@ -186,6 +210,9 @@ public class PCSSLight : MonoBehaviour
 
         SetFlag("POISSON_32", maxSamples < 33);
         SetFlag("POISSON_64", maxSamples > 33);
+
+		if (shaderVariants)
+			shaderVariants.Add(new ShaderVariantCollection.ShaderVariant(shader, PassType.Normal, keywords.ToArray()));
     }
 
     public void UpdateCommandBuffer ()
@@ -202,8 +229,11 @@ public class PCSSLight : MonoBehaviour
 
     public void SetFlag (string shaderKeyword, bool value)
     {
-        if (value)
-            Shader.EnableKeyword(shaderKeyword);
+		if (value)
+		{
+			Shader.EnableKeyword(shaderKeyword);
+			keywords.Add(shaderKeyword);
+		}
         else
             Shader.DisableKeyword(shaderKeyword);
     }

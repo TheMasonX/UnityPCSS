@@ -26,6 +26,10 @@ public class PCSSDemo : MonoBehaviour
 	[Space(10f)]
 	public Dropdown shadowMode;
 
+	[Space(10f)]
+	public Dropdown msaaMode;
+	private Camera _camera;
+
     private void Awake ()
     {
         blockerSlider.value = pcssScript.Blocker_SampleCount;
@@ -41,6 +45,7 @@ public class PCSSDemo : MonoBehaviour
         SetSoftnessFalloff(softnessFalloffSlider.value);
 
 //		SetShadowMode(shadowMode.value);
+		SetMSAAMode(msaaMode.value);
     }
 
     public void SetBlockerSamples (float samplesFloat)
@@ -75,20 +80,46 @@ public class PCSSDemo : MonoBehaviour
 
 	public void SetShadowMode (int mode)
 	{
-		switch (mode) {
-		case(0):
-			pcssScript.ResetShadowMode();
-			pcssScript._light.shadows = LightShadows.Soft;
-			pcssScript.Setup();
-			break;
-		case(1):
-			pcssScript.ResetShadowMode ();
-			pcssScript._light.shadows = LightShadows.Soft;
-			break;
-		case(2):
-			pcssScript.ResetShadowMode();
-			pcssScript._light.shadows = LightShadows.Hard;
-			break;
+		switch (mode)
+		{
+			case(0):
+				pcssScript.ResetShadowMode();
+				pcssScript._light.shadows = LightShadows.Soft;
+				pcssScript.Setup();
+				break;
+			case(1):
+				pcssScript.ResetShadowMode();
+				pcssScript._light.shadows = LightShadows.Soft;
+				break;
+			case(2):
+				pcssScript.ResetShadowMode();
+				pcssScript._light.shadows = LightShadows.Hard;
+				break;
+		}
+	}
+
+	public void SetMSAAMode (int mode)
+	{
+		if (!_camera)
+			_camera = Camera.main;
+		if (!_camera)
+			return;
+
+		_camera.allowMSAA = mode > 0;
+		switch (mode)
+		{
+			case(0):
+				QualitySettings.antiAliasing = 0;
+				break;
+			case(1):
+				QualitySettings.antiAliasing = 2;
+				break;
+			case(2):
+				QualitySettings.antiAliasing = 4;
+				break;
+			case(3):
+				QualitySettings.antiAliasing = 8;
+				break;
 		}
 	}
 }

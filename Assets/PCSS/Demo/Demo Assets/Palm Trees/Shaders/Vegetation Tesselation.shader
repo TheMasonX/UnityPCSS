@@ -1,4 +1,4 @@
-﻿Shader "Custom/Vegetation"
+﻿Shader "Custom/Vegetation Tesselation"
 {
 	Properties
 	{

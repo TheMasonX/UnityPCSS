@@ -773,7 +773,6 @@ Subshader
 		#pragma shader_feature USE_CASCADE_BLENDING
 		#pragma shader_feature ROTATE_SAMPLES
 		#pragma shader_feature USE_NOISE_TEX
-		//#pragma target 4.0
 		#pragma target 3.0
 
 		inline float3 computeCameraSpacePosFromDepth(v2f i)
@@ -806,7 +805,6 @@ Subshader
 		#pragma shader_feature USE_CASCADE_BLENDING
 		#pragma shader_feature ROTATE_SAMPLES
 		#pragma shader_feature USE_NOISE_TEX
-		//#pragma target 4.0
 		#pragma target 3.0
 
 		inline float3 computeCameraSpacePosFromDepth(v2f i)
@@ -843,7 +841,6 @@ Subshader
 		#pragma shader_feature USE_CASCADE_BLENDING
 		#pragma shader_feature ROTATE_SAMPLES
 		#pragma shader_feature USE_NOISE_TEX
-		//#pragma target 4.0
 		#pragma target 3.0
 
 		inline float3 computeCameraSpacePosFromDepth(v2f i)
@@ -876,7 +873,6 @@ Subshader
 		#pragma shader_feature USE_CASCADE_BLENDING
 		#pragma shader_feature ROTATE_SAMPLES
 		#pragma shader_feature USE_NOISE_TEX
-		//#pragma target 4.0
 		#pragma target 3.0
 
 		inline float3 computeCameraSpacePosFromDepth(v2f i)

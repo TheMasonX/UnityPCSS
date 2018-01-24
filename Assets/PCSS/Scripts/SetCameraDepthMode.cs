@@ -5,10 +5,17 @@ using UnityEngine;
 [ExecuteInEditMode]
 public class SetCameraDepthMode : MonoBehaviour
 {
+	public bool enabled;
 	public DepthTextureMode depthMode = DepthTextureMode.Depth;
 	public DepthTextureMode depthMode2 = DepthTextureMode.None;
-	[PowRange(0, 8, 2, true)]
-	public int MSAA = 0;
+	public enum antiAliasing
+	{
+		None = 0,
+		Two = 2,
+		Four = 4,
+		Eight = 8,
+	}
+	public antiAliasing MSAA = antiAliasing.None;
 	private Camera _camera;
 
 	void Awake ()
@@ -19,13 +26,16 @@ public class SetCameraDepthMode : MonoBehaviour
 	[ContextMenu("Set Depth Mode")]
 	public void SetDepthMode ()
 	{
+		if (!enabled)
+			return;
+		
 		if (!_camera)
 			_camera = GetComponent<Camera>();
 		if (!_camera)
 			return;
 
 		_camera.depthTextureMode = depthMode | depthMode2;
-		QualitySettings.antiAliasing = MSAA;
-		_camera.allowMSAA = MSAA > 0;
+		QualitySettings.antiAliasing = (int)MSAA;
+		_camera.allowMSAA = (MSAA != antiAliasing.None);
 	}
 }
