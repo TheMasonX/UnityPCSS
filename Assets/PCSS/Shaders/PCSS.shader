@@ -666,14 +666,7 @@ fixed4 frag_pcss (v2f i) : SV_Target
 #endif
 
 
-	//return cascadeWeights.x;
-
 	float scale = GetScale(cascadeWeights);
-	
-
-	//return cascadeWeights.y;
-	//scale = 1 / (cascadeWeights.x + cascadeWeights.y * 2 + cascadeWeights.z * 4);
-
 	float shadow = PCSS_Main(coord, receiverPlaneDepthBias, random, scale);
 
 
@@ -681,8 +674,8 @@ fixed4 frag_pcss (v2f i) : SV_Target
 	// Blend between shadow cascades if enabled
 	// Not working yet with split spheres, and no need when 1 cascade
 
-//#if USE_CASCADE_BLENDING && !defined(SHADOWS_SPLIT_SPHERES) && !defined(SHADOWS_SINGLE_CASCADE)
-#if defined(USE_CASCADE_BLENDING) && !defined(SHADOWS_SINGLE_CASCADE)
+#if USE_CASCADE_BLENDING && !defined(SHADOWS_SPLIT_SPHERES) && !defined(SHADOWS_SINGLE_CASCADE)
+//#if defined(USE_CASCADE_BLENDING) && !defined(SHADOWS_SINGLE_CASCADE)
 //#if !defined(SHADOWS_SINGLE_CASCADE)
 	half4 z4 = (float4(vpos.z,vpos.z,vpos.z,vpos.z) - _LightSplitsNear) / (_LightSplitsFar - _LightSplitsNear);
 	half alpha = dot(z4 * cascadeWeights, half4(1,1,1,1));
