@@ -1,0 +1,50 @@
+//-------------------------------------------
+// Panorama To Cubemap
+// Date   : 12/10/2013 - 12/10/2013
+// Author : Yutaka Yoshisaka
+//-------------------------------------------
+
+[Overview] --------------------
+
+The "Panorama To Cubemap" script involves deployment of the panorama image of a sphere map with a 2x1 ratio onto 6 Cubemap images via Unity.
+Panorama photos taken with the iPhone app "PhotoSynth" can be used as Unity backgrounds.
+Additionally, you can automatically create Skybox for use with the background.
+
+Unity 4.2.2/4.3.1 have been confirmed to work on Win/Mac.
+
+[How to Use] --------------------
+
+Operate as Unity's Editor script.
+Copy the PanoramaToCubemap directory into the project.
+It is structured as per the below.
+
+[Assets]
+  [PanoramaToCubemap]
+    [Documents]
+      PanoramaToCubemap_en.txt
+      PanoramaToCubemap_ja.txt
+    [Editor]
+      PanoramaToCubemap.cs
+    [Example]
+      saitama_park_2048x1024.jpg
+
+Of these, what you need is the "Editor" directory and the "PanoramaToCubemap.cs" file which is inside that directory.
+Please do not change the name of the "Editor" directory.
+If nothing else is needed, feel free to delete the other files.
+As a sample, we have placed a panorama image in "saitama_park_2048x1024.jpg".
+
+If you select [Window]-[Panorama To Cubemap] from the main menu, then the
+Panorama To Cubemap window will be displayed.
+
+In the top part, if you choose select, you will nominate a panorama image which was already imported as an asset.
+"Direction" nominates the rotation angle of the horizontal direction, and "Texture Size" will nominate the texture size of the Cubemap to be outputted.
+"Clear" will clear all nominated settings
+If you push the "Convert" button and wait a while, then the image deployed in the 6 Cubemap images will be displayed as Front/Back/Left/Right/Up/Down.
+The Cubemap image is stored in Assets/output_images.
+
+If you push the "Create Skybox" button at the bottom of the window, Skybox materials are created from the texture of the generated Cubemap.
+The Skybox is stored in Assets/output_materials.
+
+If you push the "Create Cubemap" button at the bottom of the window, a Cubemap is created from the texture of the generated Cubemap.
+The Cubemap is stored in Assets/output_images.
+It isn't the case that the 6 textures outputted in the Cubemap are used as is, but rather an image is assigned which horizontally flips them respectively.

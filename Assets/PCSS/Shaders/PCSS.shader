@@ -415,13 +415,22 @@ inline float SampleShadowmap(float4 coord)
 	return step(depth, coord.z);
 }
 
+inline float GetScale(float4 cascadeWeights)
+{
+	float scale = 1.0;
+	scale = (cascadeWeights.y > 0.0) ? 2.0 : scale;
+	scale = (cascadeWeights.z > 0.0) ? 4.0 : scale;
+	scale = (cascadeWeights.w > 0.0) ? 8.0 : scale;
+	return 1.0 / scale;
+}
+
 /*
 =========================================================================================================================================
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++    Find Blocker    +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 =========================================================================================================================================
 */
 
-float2 FindBlocker(float2 uv, float depth, float searchUV, float2 receiverPlaneDepthBias, float2 rotationTrig)
+float2 FindBlocker(float2 uv, float depth, float scale, float searchUV, float2 receiverPlaneDepthBias, float2 rotationTrig)
 {
 	float avgBlockerDepth = 0.0;
 	float numBlockers = 0.0;
@@ -429,7 +438,7 @@ float2 FindBlocker(float2 uv, float depth, float searchUV, float2 receiverPlaneD
 
 	for (int i = 0; i < Blocker_Samples; i++)
 	{
-		float2 offset = PoissonOffsets[i] * searchUV;
+		float2 offset = PoissonOffsets[i] * searchUV * scale;
 
 #if defined(ROTATE_SAMPLES)
 		offset = Rotate(offset, rotationTrig);
@@ -469,7 +478,7 @@ float2 FindBlocker(float2 uv, float depth, float searchUV, float2 receiverPlaneD
 =========================================================================================================================================
 */
 
-float PCF_Filter(float2 uv, float depth, float filterRadiusUV, float2 receiverPlaneDepthBias, float penumbra, float2 rotationTrig)
+float PCF_Filter(float2 uv, float depth, float scale, float filterRadiusUV, float2 receiverPlaneDepthBias, float penumbra, float2 rotationTrig)
 {
 	float sum = 0.0f;
 #if defined(UNITY_REVERSED_Z)
@@ -485,7 +494,7 @@ float PCF_Filter(float2 uv, float depth, float filterRadiusUV, float2 receiverPl
 	//for (int i = 0; i < samples; i++)
 	for (int i = 0; i < PCF_Samples; i++)
 	{
-		float2 offset = PoissonOffsets[i] * filterRadiusUV;
+		float2 offset = PoissonOffsets[i] * filterRadiusUV * scale;
 
 #if defined(ROTATE_SAMPLES)
 		offset = Rotate(offset, rotationTrig);
@@ -515,7 +524,7 @@ float PCF_Filter(float2 uv, float depth, float filterRadiusUV, float2 receiverPl
 =========================================================================================================================================
 */
 
-float PCSS_Main(float4 coords, float2 receiverPlaneDepthBias, float random)
+float PCSS_Main(float4 coords, float2 receiverPlaneDepthBias, float random, float scale)
 {
 	float2 uv = coords.xy;
 	float depth = coords.z;
@@ -536,7 +545,7 @@ float PCSS_Main(float4 coords, float2 receiverPlaneDepthBias, float random)
 	// STEP 1: blocker search
 	//float searchSize = Softness * (depth - _LightShadowData.w) / depth;
 	float searchSize = Softness * saturate(zAwareDepth - .02) / zAwareDepth;
-	float2 blockerInfo = FindBlocker(uv, depth, searchSize, receiverPlaneDepthBias, rotationTrig);
+	float2 blockerInfo = FindBlocker(uv, depth, scale, searchSize, receiverPlaneDepthBias, rotationTrig);
 
 	if (blockerInfo.y < 1)
 	{
@@ -556,7 +565,7 @@ float PCSS_Main(float4 coords, float2 receiverPlaneDepthBias, float random)
 	//filterRadiusUV *= filterRadiusUV;
 
 	// STEP 3: filtering
-	float shadow = PCF_Filter(uv, depth, filterRadiusUV, receiverPlaneDepthBias, penumbra, rotationTrig);
+	float shadow = PCF_Filter(uv, depth, scale, filterRadiusUV, receiverPlaneDepthBias, penumbra, rotationTrig);
 	return lerp(_LightShadowData.r, 1.0f, shadow);
 }
 
@@ -589,6 +598,8 @@ fixed4 frag_hard (v2f i) : SV_Target
 	return lerp(_LightShadowData.r, 1.0, shadow);
 }
 
+
+
 /**
  *	Soft Shadow Frag
  */
@@ -599,10 +610,20 @@ fixed4 frag_pcss (v2f i) : SV_Target
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i); // required for sampling the correct slice of the shadow map render texture array
 #endif
 
-	float3 vpos = computeCameraSpacePosFromDepth(i);
+	float4 wpos;
+    float3 vpos;
 
-	// sample the cascade the pixel belongs to
-	float4 wpos = mul(unity_CameraToWorld, float4(vpos,1));
+#if defined(STEREO_CUBEMAP_RENDER_ON)
+    wpos.xyz = tex2D(_ODSWorldTexture, i.uv.xy).xyz;
+    wpos.w = 1.0f;
+    vpos = mul(unity_WorldToCamera, wpos).xyz;
+#else
+    vpos = computeCameraSpacePosFromDepth(i);
+
+    // sample the cascade the pixel belongs to
+    wpos = mul(unity_CameraToWorld, float4(vpos,1));
+#endif
+
 	fixed4 cascadeWeights = GET_CASCADE_WEIGHTS(wpos, vpos.z);
 	float4 coord = GET_SHADOW_COORDINATES(wpos, cascadeWeights);
 
@@ -645,14 +666,24 @@ fixed4 frag_pcss (v2f i) : SV_Target
 #endif
 
 
-	float shadow = PCSS_Main(coord, receiverPlaneDepthBias, random);
+	//return cascadeWeights.x;
+
+	float scale = GetScale(cascadeWeights);
+	
+
+	//return cascadeWeights.y;
+	//scale = 1 / (cascadeWeights.x + cascadeWeights.y * 2 + cascadeWeights.z * 4);
+
+	float shadow = PCSS_Main(coord, receiverPlaneDepthBias, random, scale);
 
 
+	//NEEDS WORK! DOESN'T BLEND CORRECTLY AT THE MOMENT!
 	// Blend between shadow cascades if enabled
 	// Not working yet with split spheres, and no need when 1 cascade
 
 //#if USE_CASCADE_BLENDING && !defined(SHADOWS_SPLIT_SPHERES) && !defined(SHADOWS_SINGLE_CASCADE)
 #if defined(USE_CASCADE_BLENDING) && !defined(SHADOWS_SINGLE_CASCADE)
+//#if !defined(SHADOWS_SINGLE_CASCADE)
 	half4 z4 = (float4(vpos.z,vpos.z,vpos.z,vpos.z) - _LightSplitsNear) / (_LightSplitsFar - _LightSplitsNear);
 	half alpha = dot(z4 * cascadeWeights, half4(1,1,1,1));
 
@@ -665,6 +696,8 @@ fixed4 frag_pcss (v2f i) : SV_Target
 		// sample next cascade
 		cascadeWeights = fixed4(0, cascadeWeights.xyz);
 		coord = GET_SHADOW_COORDINATES(wpos, cascadeWeights);
+
+		scale = GetScale(cascadeWeights);
 
 #if defined(USE_STATIC_BIAS) || defined(USE_BLOCKER_BIAS) || defined(USE_PCF_BIAS)
 		biasMultiply = dot(cascadeWeights, unity_ShadowCascadeScales);
@@ -683,7 +716,7 @@ fixed4 frag_pcss (v2f i) : SV_Target
 
 #endif
 
-		float shadowNextCascade = PCSS_Main(coord, receiverPlaneDepthBias, random);
+		float shadowNextCascade = PCSS_Main(coord, receiverPlaneDepthBias, random, scale);
 
 		shadow = lerp(shadow, shadowNextCascade, saturate(alpha));
 	}

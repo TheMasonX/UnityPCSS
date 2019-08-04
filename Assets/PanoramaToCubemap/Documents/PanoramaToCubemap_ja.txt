@@ -1,0 +1,59 @@
+//-------------------------------------------
+// Panorama To Cubemap
+// Date   : 12/10/2013 - 12/10/2013
+// Author : Yutaka Yoshisaka
+//-------------------------------------------
+
+[概要] --------------------
+
+「Panorama To Cubemap」スクリプトは、2x1の比率のsphere mapのパノラマ画像を
+Unityで使用するCubemapの6面に展開します。
+iPhoneアプリの「PhotoSynth」で撮影したパノラマ写真をUnityの背景として使用するのに有効です。
+また、背景で使用するSkyboxの作成も自動で行うことができます。
+
+Unity 4.2.2/4.3.1のWin/Macで動作を確認しました。
+
+
+[使い方] --------------------
+
+UnityのEditorスクリプトとして動作します。
+プロジェクトに「PanoramaToCubemap」ディレクトリをコピーします。
+以下のような構成になります。
+
+[Assets]
+  [PanoramaToCubemap]
+    [Documents]
+      PanoramaToCubemap_en.txt
+      PanoramaToCubemap_ja.txt
+    [Editor]
+      PanoramaToCubemap.cs
+    [Example]
+      saitama_park_2048x1024.jpg
+
+このうち、必要なものは[Editor]ディレクトリとその中の「PanoramaToCubemap.cs」ファイルです。
+[Editor]ディレクトリ名は変更しないでください。
+その他のものは不要でしたら削除してかまいません。
+サンプルとして「saitama_park_2048x1024.jpg」にパノラマ画像を配置しています。
+
+
+メインメニューの[Window]-[Panorama To Cubemap]を選択すると、
+Panorama To Cubemapのウィンドウが表示されます。
+
+一番上の領域でselectを選択し、あらかじめAssetとしてインポートしたパノラマ画像を指定します。
+「Direction」で水平方向の回転角度を指定、
+「Texture Size」で出力するCubemapのテクスチャサイズを指定します。
+「Clear」で指定した設定をクリアします。
+「Convert」ボタンを押ししばらく待つと、Cubemapの6面に展開された画像が
+Front/Back/Left/Right/Up/Downに表示されます。
+なお、Cubemap画像は Assets/output_images に格納されます。
+
+ウィンドウ下の「Create Skybox」ボタンを押すと、生成したCubemapのテクスチャより
+Skyboxのマテリアルが作成されます。
+Skyboxは Assets/output_materials に格納されます。
+
+ウィンドウ下の「Create Cubemap」ボタンを押すと、生成したCubemapのテクスチャより
+Cubemapが作成されます。
+Cubemapは Assets/output_images に格納されます。
+なお、Cubemapでは出力した6枚のテクスチャをそのまま使用しているわけではなく、
+それぞれを左右反転した画像を割りあてています。
+
