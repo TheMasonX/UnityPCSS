@@ -74,7 +74,8 @@ v2f vert (appdata v)
 	// Perspective case
 	//Only do stero instancing in 5.6+
 #if (UNITY_VERSION >= 560) && defined(UNITY_STEREO_INSTANCING_ENABLED)
-	o.ray = v.ray[unity_StereoEyeIndex];
+//	o.ray = v.ray[unity_StereoEyeIndex];
+	o.ray = unity_StereoEyeIndex == 0 ? v.ray0 : v.ray1;
 #else
 	o.ray = v.ray;
 #endif
@@ -440,9 +441,9 @@ float2 FindBlocker(float2 uv, float depth, float scale, float searchUV, float2 r
 	{
 		float2 offset = PoissonOffsets[i] * searchUV * scale;
 
-#if defined(ROTATE_SAMPLES)
+//#if defined(ROTATE_SAMPLES)
 		offset = Rotate(offset, rotationTrig);
-#endif
+//#endif
 
 		float shadowMapDepth = SampleShadowmapDepth(uv + offset);
 
@@ -496,9 +497,9 @@ float PCF_Filter(float2 uv, float depth, float scale, float filterRadiusUV, floa
 	{
 		float2 offset = PoissonOffsets[i] * filterRadiusUV * scale;
 
-#if defined(ROTATE_SAMPLES)
+//#if defined(ROTATE_SAMPLES)
 		offset = Rotate(offset, rotationTrig);
-#endif
+//#endif
 
 		float biasedDepth = depth;
 
@@ -627,13 +628,12 @@ fixed4 frag_pcss (v2f i) : SV_Target
 	fixed4 cascadeWeights = GET_CASCADE_WEIGHTS(wpos, vpos.z);
 	float4 coord = GET_SHADOW_COORDINATES(wpos, cascadeWeights);
 
-#if defined(USE_NOISE_TEX)
+//#if defined(USE_NOISE_TEX)
 	float random = tex2D(_NoiseTexture, i.uv.xy * NoiseCoords.xy * _ScreenParams.xy).a;
 	random = mad(random, 2.0, -1.0);
-	//random = sign(random) * (1.0 - sqrt(1.0 - abs(random)));
-#else
-	float random = ValueNoise(wpos.xyz);
-#endif
+//#else
+//	float random = ValueNoise(wpos.xyz);
+//#endif
 
 	float2 receiverPlaneDepthBiasCascade0 = 0.0;
 	float2 receiverPlaneDepthBias = 0.0;
@@ -797,16 +797,15 @@ Subshader
 		#pragma multi_compile_shadowcollector
 		#pragma multi_compile POISSON_32 POISSON_64
 
-		#pragma shader_feature ORTHOGRAPHIC_SUPPORTED
 		#pragma shader_feature USE_FALLOFF
+		#pragma shader_feature USE_CASCADE_BLENDING
 		#pragma shader_feature USE_STATIC_BIAS
 		#pragma shader_feature USE_BLOCKER_BIAS
 		#pragma shader_feature USE_PCF_BIAS
-		#pragma shader_feature USE_CASCADE_BLENDING
-		#pragma shader_feature ROTATE_SAMPLES
-		#pragma shader_feature USE_NOISE_TEX
-		#pragma target 4.0
-		//#pragma target 3.0
+		#pragma shader_feature ORTHOGRAPHIC_SUPPORTED
+//		#pragma shader_feature ROTATE_SAMPLES
+//		#pragma shader_feature USE_NOISE_TEX
+		#pragma target 3.0
 
 		inline float3 computeCameraSpacePosFromDepth(v2f i)
 		{
@@ -830,16 +829,15 @@ Subshader
 		#pragma multi_compile_shadowcollector
 		#pragma multi_compile POISSON_32 POISSON_64
 
-		#pragma shader_feature ORTHOGRAPHIC_SUPPORTED
 		#pragma shader_feature USE_FALLOFF
+		#pragma shader_feature USE_CASCADE_BLENDING
 		#pragma shader_feature USE_STATIC_BIAS
 		#pragma shader_feature USE_BLOCKER_BIAS
 		#pragma shader_feature USE_PCF_BIAS
-		#pragma shader_feature USE_CASCADE_BLENDING
-		#pragma shader_feature ROTATE_SAMPLES
-		#pragma shader_feature USE_NOISE_TEX
-		#pragma target 4.0
-		//#pragma target 3.0
+		#pragma shader_feature ORTHOGRAPHIC_SUPPORTED
+//		#pragma shader_feature ROTATE_SAMPLES
+//		#pragma shader_feature USE_NOISE_TEX
+		#pragma target 3.0
 
 		inline float3 computeCameraSpacePosFromDepth(v2f i)
 		{
@@ -867,16 +865,15 @@ Subshader
 		#pragma multi_compile_shadowcollector
 		#pragma multi_compile POISSON_32 POISSON_64
 
-		#pragma shader_feature ORTHOGRAPHIC_SUPPORTED
 		#pragma shader_feature USE_FALLOFF
+		#pragma shader_feature USE_CASCADE_BLENDING
 		#pragma shader_feature USE_STATIC_BIAS
 		#pragma shader_feature USE_BLOCKER_BIAS
 		#pragma shader_feature USE_PCF_BIAS
-		#pragma shader_feature USE_CASCADE_BLENDING
-		#pragma shader_feature ROTATE_SAMPLES
-		#pragma shader_feature USE_NOISE_TEX
-		#pragma target 4.0
-		//#pragma target 3.0
+		#pragma shader_feature ORTHOGRAPHIC_SUPPORTED
+//		#pragma shader_feature ROTATE_SAMPLES
+//		#pragma shader_feature USE_NOISE_TEX
+		#pragma target 3.0
 
 		inline float3 computeCameraSpacePosFromDepth(v2f i)
 		{
@@ -900,16 +897,15 @@ Subshader
 		#pragma multi_compile_shadowcollector
 		#pragma multi_compile POISSON_32 POISSON_64
 
-		#pragma shader_feature ORTHOGRAPHIC_SUPPORTED
 		#pragma shader_feature USE_FALLOFF
+		#pragma shader_feature USE_CASCADE_BLENDING
 		#pragma shader_feature USE_STATIC_BIAS
 		#pragma shader_feature USE_BLOCKER_BIAS
 		#pragma shader_feature USE_PCF_BIAS
-		#pragma shader_feature USE_CASCADE_BLENDING
-		#pragma shader_feature ROTATE_SAMPLES
-		#pragma shader_feature USE_NOISE_TEX
-		#pragma target 4.0
-		//#pragma target 3.0
+		#pragma shader_feature ORTHOGRAPHIC_SUPPORTED
+//		#pragma shader_feature ROTATE_SAMPLES
+//		#pragma shader_feature USE_NOISE_TEX
+		#pragma target 3.0
 
 		inline float3 computeCameraSpacePosFromDepth(v2f i)
 		{

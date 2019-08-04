@@ -15,7 +15,7 @@ I thought this photo was really cool, so I did a quick recreation as a test:
 Currently only works with "Directional" light sources, as it's primarily an override of the "Screen Space Shadows" shader in the graphics settings, but I'm looking into the possibility of directly overriding the actual "UnityShadowLibrary.cginc" to affect "Spot" and "Point" lights if possible.
 
 # Version Compatibility
-The shadows themselves do work with **BOTH 5.5 and 5.6** (no modifications necessary, it automatically detects and adapts to either version), but as this is a **Unity 5.6 project**, the materials in the demo scene do not import correctly in 5.5. There are only 3 or so materials that need their albedo/metallic/specular textures assigned from the nearby "Textures" folder, so it's not that bad, but if anybody has any ideas to fix this, please let me know! :)
+The shadows themselves do work with **5.5, 5.6, and 2017** (no modifications necessary, it automatically detects and adapts to either version), but as this is now a **Unity 2017 project**, the materials in the demo scene do not import correctly in 5.5 or 5.6. There are only 3 or so materials that need their albedo/metallic/specular textures assigned from the nearby "Textures" folder, so it's not that bad, but if anybody has any ideas to fix this, please let me know! :)
 
 # Future Development
 This asset and any improvements will remain free (both as in beer and speech), but if you wish to support me spending extra time on this, you can donate to me through [PayPal](paypal.me/TheMasonX). NOTE: Please do not feel pressured to donate it's just an option if anyone wishes to support me spending more time on this, and less on my game, which I can't even use it for.

@@ -58,6 +58,10 @@
 		float _WindFrequency;
 		float _WindAmplitude;
 
+		UNITY_INSTANCING_BUFFER_START(Props)
+			// put more per-instance properties here
+		UNITY_INSTANCING_BUFFER_END(Props)
+
 		void vert(inout appdata v)
 		{
 			float3 pos = mul(v.vertex, unity_ObjectToWorld);

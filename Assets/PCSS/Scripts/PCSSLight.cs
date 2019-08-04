@@ -16,8 +16,8 @@ public class PCSSLight : MonoBehaviour
     public int PCF_SampleCount = 16;
 
     [Space(20f)]
-    public bool RotateSamples = true;
-    public bool UseNoiseTexture = true;
+//    public bool RotateSamples = true;
+//    public bool UseNoiseTexture = true;
     public Texture2D noiseTexture;
 
     [Space(20f)]
@@ -47,15 +47,28 @@ public class PCSSLight : MonoBehaviour
     [Space(20f)]
     public RenderTexture shadowRenderTexture;
     public RenderTextureFormat format = RenderTextureFormat.RFloat;
-    public FilterMode filterMode = FilterMode.Bilinear;
+	public FilterMode filterMode = FilterMode.Bilinear;
+	public enum antiAliasing
+	{
+		None = 1,
+		Two = 2,
+		Four = 4,
+		Eight = 8,
+	}
+	public antiAliasing MSAA = antiAliasing.None;
     private LightEvent lightEvent = LightEvent.AfterShadowMap;
 
     public string shaderName = "Hidden/PCSS";
-    private Shader shader;
+	public Shader shader;
+	public string builtinShaderName = "Hidden/Built-In-ScreenSpaceShadows";
+	public Shader builtinShader;
     private int shadowmapPropID;
+	public ShaderVariantCollection shaderVariants;
+	private List<string> keywords = new List<string>();
 
     private CommandBuffer copyShadowBuffer;
-    private Light _light;
+	[HideInInspector]
+	public Light _light;
 
     #region Initialization
     public void OnEnable ()
@@ -74,7 +87,7 @@ public class PCSSLight : MonoBehaviour
         _light = GetComponent<Light>();
         if (!_light)
             return;
-
+		
         resolution = Mathf.ClosestPowerOfTwo(resolution);
         if (customShadowResolution)
             _light.shadowCustomResolution = resolution;
@@ -82,6 +95,13 @@ public class PCSSLight : MonoBehaviour
             _light.shadowCustomResolution = 0;
 
         shader = Shader.Find(shaderName);
+//		if (!Application.isEditor)
+//		{
+//			if (shader)
+//				Debug.LogErrorFormat("Custom Shadow Shader Found: {0} | Supported {1}", shader.name, shader.isSupported);
+//			else
+//				Debug.LogError("Custom Shadow Shader Not Found!!!");
+//		}
         shadowmapPropID = Shader.PropertyToID("_ShadowMap");
 
         copyShadowBuffer = new CommandBuffer();
@@ -110,12 +130,22 @@ public class PCSSLight : MonoBehaviour
         shadowRenderTexture = new RenderTexture(resolution, resolution, 0, format);
         shadowRenderTexture.filterMode = filterMode;
         shadowRenderTexture.useMipMap = false;
+		shadowRenderTexture.antiAliasing = (int)MSAA;
     }
 
     [ContextMenu("Reset Shadows To Default")]
     public void ResetShadowMode ()
     {
-        GraphicsSettings.SetCustomShader(BuiltinShaderType.ScreenSpaceShadows, Shader.Find("Hidden/Internal-ScreenSpaceShadows"));
+		builtinShader = Shader.Find(builtinShaderName);
+//		if (!Application.isEditor)
+//		{
+//			if (builtinShader)
+//				Debug.LogErrorFormat("Built-In Shadow Shader Found: {0} | Supported {1}", builtinShader.name, builtinShader.isSupported);
+//			else
+//				Debug.LogError("Shadow Shader Not Found!!!");
+//		}
+
+		GraphicsSettings.SetCustomShader(BuiltinShaderType.ScreenSpaceShadows, builtinShader);
         GraphicsSettings.SetShaderMode(BuiltinShaderType.ScreenSpaceShadows, BuiltinShaderMode.Disabled);
         _light.shadowCustomResolution = 0;
         DestroyImmediate(shadowRenderTexture);
@@ -131,15 +161,18 @@ public class PCSSLight : MonoBehaviour
     #region UpdateSettings
     public void UpdateShaderValues ()
     {
+		keywords.Clear();
         Shader.SetGlobalInt("Blocker_Samples", Blocker_SampleCount);
         Shader.SetGlobalInt("PCF_Samples", PCF_SampleCount);
 
         if (shadowRenderTexture)
         {
-            if (shadowRenderTexture.format != format)
-                CreateShadowRenderTexture();
-            else
-                shadowRenderTexture.filterMode = filterMode;
+			if (shadowRenderTexture.format != format || shadowRenderTexture.antiAliasing != (int)MSAA)
+				CreateShadowRenderTexture();
+			else
+			{
+				shadowRenderTexture.filterMode = filterMode;
+			}
         }
 
         Shader.SetGlobalFloat("Softness", Softness / 64f / Mathf.Sqrt(QualitySettings.shadowDistance));
@@ -158,8 +191,8 @@ public class PCSSLight : MonoBehaviour
         SetFlag("USE_BLOCKER_BIAS", Blocker_GradientBias > 0);
         SetFlag("USE_PCF_BIAS", PCF_GradientBias > 0);
 
-        SetFlag("ROTATE_SAMPLES", RotateSamples);
-        SetFlag("USE_NOISE_TEX", UseNoiseTexture);
+//        SetFlag("ROTATE_SAMPLES", RotateSamples);
+//        SetFlag("USE_NOISE_TEX", UseNoiseTexture);
 
         if (noiseTexture)
         {
@@ -173,6 +206,9 @@ public class PCSSLight : MonoBehaviour
 
         SetFlag("POISSON_32", maxSamples < 33);
         SetFlag("POISSON_64", maxSamples > 33);
+
+		if (shaderVariants)
+			shaderVariants.Add(new ShaderVariantCollection.ShaderVariant(shader, PassType.Normal, keywords.ToArray()));
     }
 
     public void UpdateCommandBuffer ()
@@ -189,8 +225,11 @@ public class PCSSLight : MonoBehaviour
 
     public void SetFlag (string shaderKeyword, bool value)
     {
-        if (value)
-            Shader.EnableKeyword(shaderKeyword);
+		if (value)
+		{
+			Shader.EnableKeyword(shaderKeyword);
+			keywords.Add(shaderKeyword);
+		}
         else
             Shader.DisableKeyword(shaderKeyword);
     }
